@@ -37,13 +37,13 @@ class Prediction:
 
             for ref in population.match_set:
                 cl = population.pop_set[ref]
-                if self.prediction[cl.phenotype] == None:
-                    self.prediction[cl.phenotype] = cl.prediction * cl.fitness
+                if self.prediction[cl.action] == None:
+                    self.prediction[cl.action] = cl.prediction * cl.fitness
                 else:
-                    self.prediction[cl.phenotype] += cl.prediction * cl.fitness# * cl.numerosity
-                self.denominator[cl.phenotype] += cl.fitness# * cl.numerosity
-                self.tieBreak_Numerosity[cl.phenotype] += cl.numerosity
-                self.tieBreak_TimeStamp[cl.phenotype] += cl.init_timestamp
+                    self.prediction[cl.action] += cl.prediction * cl.fitness# * cl.numerosity
+                self.denominator[cl.action] += cl.fitness# * cl.numerosity
+                self.tieBreak_Numerosity[cl.action] += cl.numerosity
+                self.tieBreak_TimeStamp[cl.action] += cl.init_timestamp
 
             for eachClass in cons.env.format_data.action_list:
                 if self.denominator[eachClass] != 0:
@@ -113,9 +113,9 @@ class Prediction:
                 valueWeightSum = 0
                 for ref in population.match_set:
                     cl = population.pop_set[ref]
-                    localRange = cl.phenotype[1] - cl.phenotype[0]
+                    localRange = cl.action[1] - cl.action[0]
                     valueWeight = (phenotypeRange/float(localRange)) * cl.prediction * cl.fitness
-                    localAverage = cl.phenotype[1]+cl.phenotype[0] / 2.0
+                    localAverage = cl.action[1]+cl.action[0] / 2.0
 
                     valueWeightSum += valueWeight
                     predictionValue += valueWeight * localAverage
@@ -127,7 +127,7 @@ class Prediction:
                 self.denominator[self.decision] = 0.0
                 for ref in population.match_set:
                     cl = population.pop_set[ref]
-                    if cl.phenotype[1] >= self.decision and cl.phenotype[0] <= self.decision:
+                    if cl.action[1] >= self.decision and cl.action[0] <= self.decision:
                         self.prediction[self.decision] += cl.prediction * cl.fitness
                         self.denominator[self.decision] += cl.fitness
                     self.prediction[self.decision] /= self.denominator[self.decision]
@@ -138,7 +138,7 @@ class Prediction:
         fitSum = 0
         for ref in population.match_set:
             cl = population.pop_set[ref]
-            if cl.phenotype[0] <= low and cl.phenotype[1] >= high: #if classifier range subsumes segment range.
+            if cl.action[0] <= low and cl.action[1] >= high: #if classifier range subsumes segment range.
                 fitSum += cl.fitness
         return fitSum
 

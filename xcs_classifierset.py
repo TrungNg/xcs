@@ -96,16 +96,16 @@ class ClassifierSet:
             for id in results:
                 if id != None:
                     self.match_set.append( id )                 # If match - add classifier to match set
-                    if self.pop_set[ id ].phenotype not in matched_phenotype_list:
-                        matched_phenotype_list.append( self.pop_set[ id ].phenotype )
+                    if self.pop_set[ id ].action not in matched_phenotype_list:
+                        matched_phenotype_list.append( self.pop_set[ id ].action )
         else:
             for i in range( len( self.pop_set ) ):              # Go through the population
                 cl = self.pop_set[i]                            # One classifier at a time
                 #totalPrediction += cl.prediction * cl.numerosity
                 if cl.match( state ):                             # Check for match
                     self.match_set.append( i )                  # If match - add classifier to match set
-                    if cl.phenotype not in matched_phenotype_list:
-                        matched_phenotype_list.append( cl.phenotype )
+                    if cl.action not in matched_phenotype_list:
+                        matched_phenotype_list.append( cl.action )
                     #totalMatchSetPrediction += cl.prediction * cl.numerosity
         cons.timer.stopTimeMatching()
         #if totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and totalPrediction > 0:
@@ -118,7 +118,7 @@ class ClassifierSet:
             newCl = Classifier(iteration, state, random.choice(list(set(cons.env.format_data.action_list) - set(matched_phenotype_list))))
             self.addClassifierToPopulation( newCl )
             self.match_set.append( len(self.pop_set)-1 )  # Add covered classifier to match set
-            matched_phenotype_list.append( newCl.phenotype )
+            matched_phenotype_list.append( newCl.action )
             #totalMatchSetPrediction += newCl.prediction * newCl.numerosity
             #totalPrediction += newCl.prediction * newCl.numerosity
             if len( matched_phenotype_list ) >= cons.theta_mna: #totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and
@@ -135,13 +135,13 @@ class ClassifierSet:
             # DISCRETE PHENOTYPE
             #-------------------------------------------------------
             if cons.env.format_data.discrete_action:
-                if self.pop_set[ref].phenotype == selected_action:
+                if self.pop_set[ref].action == selected_action:
                     self.action_set.append(ref)
             #-------------------------------------------------------
             # CONTINUOUS PHENOTYPE
             #-------------------------------------------------------
             else:
-                if float(selected_action) <= float(self.pop_set[ref].phenotype[1]) and float(selected_action) >= float(self.pop_set[ref].phenotype[0]):
+                if float(selected_action) <= float(self.pop_set[ref].action[1]) and float(selected_action) >= float(self.pop_set[ref].action[0]):
                     self.action_set.append(ref)
 
 
@@ -400,7 +400,7 @@ class ClassifierSet:
         for ref in self.action_set:
             cl = self.pop_set[ref]
             if cl.isPossibleSubsumer():
-                if subsumer == None or len( subsumer.specifiedAttList ) > len( cl.specifiedAttList ) or ( ( len(subsumer.specifiedAttList ) == len(cl.specifiedAttList) and random.random() < 0.5 ) ):
+                if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and random.random() < 0.5 ) ):
                     subsumer = cl
 
         if subsumer != None: #If a subsumer was found, subsume all more specific classifiers in the match set
@@ -440,9 +440,9 @@ class ClassifierSet:
         if cons.do_subsumption:
             cons.timer.startTimeSubsumption()
 
-            if len(cl1.specifiedAttList) > 0:
+            if len(cl1.specified_attributes) > 0:
                 self.subsumeClassifier(cl1, clP1, clP2)
-            if len(cl2.specifiedAttList) > 0:
+            if len(cl2.specified_attributes) > 0:
                 self.subsumeClassifier(cl2, clP1, clP2)
 
             cons.timer.stopTimeSubsumption()
@@ -450,9 +450,9 @@ class ClassifierSet:
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         else: #Just add the new classifiers to the population.
-            if len(cl1.specifiedAttList) > 0:
+            if len(cl1.specified_attributes) > 0:
                 self.addClassifierToPopulation(cl1) #False passed because this is not called for a covered rule.
-            if len(cl2.specifiedAttList) > 0:
+            if len(cl2.specified_attributes) > 0:
                 self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
 
 
@@ -549,7 +549,7 @@ class ClassifierSet:
         if not cons.env.format_data.discrete_action:
             sumRuleRange = 0
             for cl in self.pop_set:
-                sumRuleRange += (cl.phenotype[1] - cl.phenotype[0])*cl.numerosity
+                sumRuleRange += (cl.action[1] - cl.action[0])*cl.numerosity
             phenotypeRange = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
             self.ave_phenotype_range = (sumRuleRange / float(self.micro_size)) / float(phenotypeRange)
 
@@ -563,7 +563,7 @@ class ClassifierSet:
                 self.attribute_spec_list.append(0)
                 self.attribute_acc_list.append(0.0)
             for cl in self.pop_set:
-                for ref in cl.specifiedAttList: #for each attRef
+                for ref in cl.specified_attributes: #for each attRef
                     self.attribute_spec_list[ref] += cl.numerosity
                     self.attribute_acc_list[ref] += cl.numerosity * cl.accuracy
 
