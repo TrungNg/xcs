@@ -60,6 +60,8 @@ class Prediction:
             for thisClass in cons.env.format_data.action_list:
                 if self.prediction[thisClass] != None and self.prediction[thisClass] == highVal: #Tie for best class
                     self.bestClass.append(thisClass)
+            self.possible_actions = [ k for k,v in self.prediction.items() if v != None ]
+            self.possible_actions.sort()
             if random.random() >= cons.exploration or testingMode == True:
                 # select by exploitation
                 #---------------------------
@@ -90,6 +92,8 @@ class Prediction:
                         #-----------------------------------------------------------------------
                         if len(newestBestClass) > 1: # Prediction is completely tied - XCS has no useful information for making a prediction
                             self.decision = 'Tie'
+                        else:
+                            self.decision = newestBestClass[0]
                     else:
                         self.decision = newBestClass[0]
                 #----------------------------------------------------------------------
@@ -97,7 +101,7 @@ class Prediction:
                     self.decision = self.bestClass[0]
             else:
                 # select by exploration
-                self.decision = random.choice([k for k,v in self.prediction.items() if v is not None])
+                self.decision = random.choice( self.possible_actions )
 
         #-------------------------------------------------------
         # CONTINUOUS PHENOTYPES - NOT SURE HOW TO ADJUST THIS PART FOR XCS?
@@ -160,7 +164,7 @@ class Prediction:
         """ Returns prediction decision. """
         if self.decision == None or self.decision == 'Tie':
             if cons.env.format_data.discrete_action:
-                self.decision = random.choice([k for k,v in self.prediction.items() if v is not None])
+                self.decision = random.choice( self.possible_actions )
             else:
                 self.decision = random.randrange(cons.env.format_data.action_list[0],cons.env.format_data.action_list[1],(cons.env.format_data.action_list[1]-cons.env.format_data.action_list[0])/float(1000))
         return self.decision

@@ -93,11 +93,11 @@ class ClassifierSet:
         cons.timer.startTimeMatching()
         if cons.multiprocessing:
             results = pool.map( self.parallelMatching, range( len( self.pop_set ) ) )
-            for id in results:
-                if id != None:
-                    self.match_set.append( id )                 # If match - add classifier to match set
-                    if self.pop_set[ id ].action not in matched_phenotype_list:
-                        matched_phenotype_list.append( self.pop_set[ id ].action )
+            for i in results:
+                if i != None:
+                    self.match_set.append( i )                 # If match - add classifier to match set
+                    if self.pop_set[ i ].action not in matched_phenotype_list:
+                        matched_phenotype_list.append( self.pop_set[ i ].action )
         else:
             for i in range( len( self.pop_set ) ):              # Go through the population
                 cl = self.pop_set[i]                            # One classifier at a time
@@ -115,7 +115,8 @@ class ClassifierSet:
         # COVERING
         #-------------------------------------------------------
         while do_covering:
-            newCl = Classifier(iteration, state, random.choice(list(set(cons.env.format_data.action_list) - set(matched_phenotype_list))))
+            missing_actions = [ action for action in cons.env.format_data.action_list if action not in matched_phenotype_list ]
+            newCl = Classifier(iteration, state, random.choice( missing_actions ))
             self.addClassifierToPopulation( newCl )
             self.match_set.append( len(self.pop_set)-1 )  # Add covered classifier to match set
             matched_phenotype_list.append( newCl.action )

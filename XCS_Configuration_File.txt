@@ -17,7 +17,7 @@ p_spec=0.5										# The probability of specifying an attribute when covering. 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Logistical Run Parameters
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-randomSeed=False								# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
+randomSeed=2									# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
 labelInstanceID=InstanceID						# Label for the data column header containing instance ID's.  If included label not found, algorithm assumes that no instance ID's were included.
 labelPhenotype=Class							# Label for the data column header containing the phenotype label. (Typically 'Class' for case/control datasets)
 labelMissingData=NA								# Label used for any missing data in the data set.
