@@ -22,26 +22,25 @@ class Classifier:
     def __init__(self,a=None,b=None,c=None):
         #Major Parameters --------------------------------------------------
         self.specified_attributes = []      # Attribute Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
-        self.condition = []             # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
-        self.action = None           # Class if the endpoint is discrete, and a continuous phenotype if the endpoint is continuous
+        self.condition = []                 # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
+        self.action = None                  # Class if the endpoint is discrete, and a continuous phenotype if the endpoint is continuous
 
-        self.prediction = cons.init_pred  # Classifier payoff - initialized to a constant initial payoff value
-        self.error = cons.init_err      # Classifier error - initialized to a constant initial error value
-        self.fitness = cons.init_fit    # Classifier fitness - initialized to a constant initial fitness value
-        self.accuracy = 0.0             # Classifier accuracy - Accuracy calculated using only instances in the dataset which this rule matched.
-        self.numerosity = 1             # The number of rule copies stored in the population.  (Indirectly stored as incremented numerosity)
-        self.mean_actionset_sz = 0       # A parameter used in deletion which reflects the size of match sets within this rule has been included.
-        self.delete_vote = None        # The current deletion weight for this classifier.
+        self.prediction = cons.init_pred    # Classifier payoff - initialized to a constant initial payoff value
+        self.error = cons.init_err          # Classifier error - initialized to a constant initial error value
+        self.fitness = cons.init_fit        # Classifier fitness - initialized to a constant initial fitness value
+        self.accuracy = 0.0                 # Classifier accuracy - Accuracy calculated using only instances in the dataset which this rule matched.
+        self.numerosity = 1                 # The number of rule copies stored in the population.  (Indirectly stored as incremented numerosity)
+        self.avg_actionset_size = 0         # A parameter used in deletion which reflects the size of match sets within this rule has been included.
+        self.delete_vote = 0             # The current deletion weight for this classifier.
 
         #Experience Management ---------------------------------------------
-        self.ga_timestamp = None         # Time since rule last in a match set.
-        self.init_timestamp = None       # Iteration in which the rule first appeared.
+        self.ga_timestamp = None            # Time since rule last in a match set.
+        self.init_timestamp = None          # Iteration in which the rule first appeared.
 
         #Classifier Accuracy Tracking --------------------------------------
         self.ga_count = 0
         self.subsumer_cnt = 0
-        #self.matchCount = 0             # Known in many LCS implementations as experience i.e. the total number of times this classifier was in a match set
-        self.actionCount = 0            # The total number of times this classifier was chosen in action set
+        self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
             self.classifierCovering(a,b,c)
@@ -55,97 +54,95 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER CONSTRUCTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def classifierCovering(self, exploreIter, state, phenotype):
+    def classifierCovering(self, iteration, state, action):
         """ Makes a new classifier when the covering mechanism is triggered.  The new classifier will match the current training instance.
         Covering will NOT produce a default rule (i.e. a rule with a completely general condition). """
         #Initialize new classifier parameters----------
-        self.ga_timestamp = exploreIter
-        self.init_timestamp = exploreIter
-        #self.aveMatchSetSize = setSize
+        self.ga_timestamp = iteration
+        self.init_timestamp = iteration
         data_info = cons.env.format_data
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE
         #-------------------------------------------------------
         if data_info.discrete_action:
-            if phenotype != None:
-                self.action = phenotype
+            if action != None:
+                self.action = action
             else:
                 self.action = random.choice(cons.env.format_data.action_list)
         #-------------------------------------------------------
         # CONTINUOUS PHENOTYPE
         #-------------------------------------------------------
         else:
-            phenotypeRange = data_info.action_list[1] - data_info.action_list[0]
-            rangeRadius = random.randint(25,75)*0.01*phenotypeRange / 2.0 #Continuous initialization domain radius.
-            if phenotype == None:
-                phenotype = data_info.action_list[0] + rangeRadius + random.random() * ( phenotypeRange - 2 * rangeRadius )
-            Low = float(phenotype) - rangeRadius
-            High = float(phenotype) + rangeRadius
-            self.action = [Low,High] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
+            action_range = data_info.action_list[1] - data_info.action_list[0]
+            range_radius = random.randint(25,75)*0.01*action_range / 2.0 #Continuous initialization domain radius.
+            if action == None:
+                action = data_info.action_list[0] + range_radius + random.random() * ( action_range - 2 * range_radius )
+            low = float(action) - range_radius
+            high = float(action) + range_radius
+            self.action = [low,high] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
         #-------------------------------------------------------
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
         while len(self.specified_attributes) < 1:
-            for attRef in range(len(state)):
-                if random.random() < cons.p_spec and state[attRef] != cons.labelMissingData:
-                    self.specified_attributes.append(attRef)
-                    self.condition.append(self.buildMatch(attRef, state))
+            for att in range(len(state)):
+                if random.random() < cons.p_spec and state[att] != cons.missing_label:
+                    self.specified_attributes.append(att)
+                    self.condition.append(self.buildMatch(att, state))
 
 
-    def classifierCopy(self, clOld, exploreIter):
+    def classifierCopy(self, old_cl, iteration):
         """  Constructs an identical Classifier.  However, the experience of the copy is set to 0 and the numerosity
         is set to 1 since this is indeed a new individual in a population. Used by the genetic algorithm to generate
         offspring based on parent classifiers."""
-        self.specified_attributes = copy.deepcopy(clOld.specified_attributes)
-        self.condition = copy.deepcopy(clOld.condition)
-        self.action = copy.deepcopy(clOld.action)
-        self.ga_timestamp = exploreIter
-        self.init_timestamp = exploreIter
-        #self.aveMatchSetSize = copy.deepcopy(clOld.aveMatchSetSize)
-        self.prediction = clOld.prediction
-        self.error = clOld.error
-        self.fitness = clOld.fitness
-        #self.accuracy = clOld.accuracy
+        self.specified_attributes = copy.deepcopy(old_cl.specified_attributes)
+        self.condition = copy.deepcopy(old_cl.condition)
+        self.action = copy.deepcopy(old_cl.action)
+        self.ga_timestamp = iteration
+        self.init_timestamp = iteration
+        #self.avg_actionset_size = old_cl.avg_actionset_size
+        self.prediction = old_cl.prediction
+        self.error = old_cl.error
+        self.fitness = old_cl.fitness
 
 
-    def rebootClassifier(self, classifierList):
+    def rebootClassifier(self, classifier_list):
         """ Rebuilds a saved classifier as part of the population Reboot """
-        numAttributes = cons.env.format_data.numb_attributes
-        attInfo = cons.env.format_data.attribute_info
-        for attRef in range(0,numAttributes):
-            if classifierList[attRef] != '#':  #Attribute in rule is not wild
-                if attInfo[attRef][0]: #Continuous Attribute
-                    valueRange = classifierList[attRef].split(';')
-                    self.condition.append(valueRange)
-                    self.specified_attributes.append(attRef)
+        numb_attributes = cons.env.format_data.numb_attributes
+        attribute_info = cons.env.format_data.attribute_info
+        for att in range(0,numb_attributes):
+            if classifier_list[att] != '#':  #Attribute in rule is not wild
+                if attribute_info[att][0]: #Continuous Attribute
+                    value_range = classifier_list[att].split(';')
+                    self.condition.append(value_range)
+                    self.specified_attributes.append(att)
                 else:
-                    self.condition.append(classifierList[attRef])
-                    self.specified_attributes.append(attRef)
+                    self.condition.append(classifier_list[att])
+                    self.specified_attributes.append(att)
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE
         #-------------------------------------------------------
         if cons.env.format_data.discrete_action:
-            self.action = str(classifierList[numAttributes])
+            self.action = str(classifier_list[numb_attributes])
         #-------------------------------------------------------
         # CONTINUOUS PHENOTYPE
         #-------------------------------------------------------
         else:
-            self.action = classifierList[numAttributes].split(';')
+            self.action = classifier_list[numb_attributes].split(';')
             for i in range(2):
                 self.action[i] = float(self.action[i])
 
-        self.prediction = float(classifierList[numAttributes+1])
-        self.error = float(classifierList[numAttributes+2])
-        self.fitness = float(classifierList[numAttributes+3])
-        self.numerosity = int(classifierList[numAttributes+4])
-        self.ga_count = float(classifierList[numAttributes+5])
-        self.subsumer_cnt = float(classifierList[numAttributes+6])
-        self.aveMatchSetSize = float(classifierList[numAttributes+7])
-        self.ga_timestamp = int(classifierList[numAttributes+8])
-        self.init_timestamp = int(classifierList[numAttributes+9])
+        self.prediction = float(classifier_list[numb_attributes+1])
+        self.error = float(classifier_list[numb_attributes+2])
+        self.fitness = float(classifier_list[numb_attributes+3])
+        self.numerosity = int(classifier_list[numb_attributes+4])
+        self.ga_count = float(classifier_list[numb_attributes+5])
+        self.subsumer_cnt = float(classifier_list[numb_attributes+6])
+        self.avg_actionset_size = float(classifier_list[numb_attributes+7])
+        self.ga_timestamp = int(classifier_list[numb_attributes+8])
+        self.init_timestamp = int(classifier_list[numb_attributes+9])
 
-        self.delete_vote = float(classifierList[numAttributes+11])
-        self.actionCount = int(classifierList[numAttributes+12])
+        self.delete_vote = float(classifier_list[numb_attributes+11])
+        self.action_cnt = int(classifier_list[numb_attributes+12])
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -154,13 +151,13 @@ class Classifier:
     def match(self, state):
         """ Returns if the classifier matches in the current situation. """
         for i in range(len(self.condition)):
-            attributeInfo = cons.env.format_data.attribute_info[self.specified_attributes[i]]
+            attribute_info = cons.env.format_data.attribute_info[self.specified_attributes[i]]
             #-------------------------------------------------------
             # CONTINUOUS ATTRIBUTE
             #-------------------------------------------------------
-            if attributeInfo[0]:
-                instanceValue = state[self.specified_attributes[i]]
-                if self.condition[i][0] < instanceValue < self.condition[i][1] or instanceValue == cons.labelMissingData:
+            if attribute_info[0]:
+                state_val = state[self.specified_attributes[i]]
+                if self.condition[i][0] < state_val < self.condition[i][1] or state_val == cons.missing_label:
                     pass
                 else:
                     return False
@@ -168,8 +165,8 @@ class Classifier:
             # DISCRETE ATTRIBUTE
             #-------------------------------------------------------
             else:
-                stateRep = state[self.specified_attributes[i]]
-                if stateRep == self.condition[i] or stateRep == cons.labelMissingData:
+                state_val = state[self.specified_attributes[i]]
+                if state_val == self.condition[i] or state_val == cons.missing_label:
                     pass
                 else:
                     return False
@@ -185,31 +182,31 @@ class Classifier:
         #DEVITO: cl. is where less useful attribute are more likely to be specified
         """
         if cons.env.format_data.discrete_action: #Always crossover condition if the phenotype is discrete (if continuous phenotype, half the time phenotype crossover is performed instead)
-            p_self_specifiedAttList = copy.deepcopy(self.specified_attributes)
-            p_cl_specifiedAttList = copy.deepcopy(cl.specified_attributes)
+            self_specified_attributes = copy.deepcopy(self.specified_attributes)
+            cl_specified_attributes = copy.deepcopy(cl.specified_attributes)
             probability = 0.5  #Equal probability for attribute alleles to be exchanged.
 
             #Make list of attribute references appearing in at least one of the parents.-----------------------------
-            comboAttList = []
-            for i in p_self_specifiedAttList:
-                comboAttList.append(i)
-            for i in p_cl_specifiedAttList:
-                if i not in comboAttList:
-                    comboAttList.append(i)
+            combined_specified_atts = []
+            for i in self_specified_attributes:
+                combined_specified_atts.append(i)
+            for i in cl_specified_attributes:
+                if i not in combined_specified_atts:
+                    combined_specified_atts.append(i)
                 elif not cons.env.format_data.attribute_info[i][0]: #Attribute specified in both parents, and the attribute is discrete (then no reason to cross over)
-                    comboAttList.remove(i)
-            comboAttList.sort()
+                    combined_specified_atts.remove(i)
+            combined_specified_atts.sort()
             #--------------------------------------------------------------------------------------------------------
             changed = False;
-            for attRef in comboAttList:  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-                attributeInfo = cons.env.format_data.attribute_info[attRef]
+            for att in combined_specified_atts:  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
+                attribute_info = cons.env.format_data.attribute_info[att]
                 #-----------------------------
                 ref = 0
-                #if attRef in self.specified_attributes:
-                if attRef in p_self_specifiedAttList:
+                #if att in self.specified_attributes:
+                if att in self_specified_attributes:
                     ref += 1
-                #if attRef in cl.specified_attributes:
-                if attRef in p_cl_specifiedAttList:
+                #if att in cl.specified_attributes:
+                if att in cl_specified_attributes:
                     ref += 1
                 #-----------------------------
 
@@ -218,19 +215,19 @@ class Classifier:
                     pass
 
                 elif ref == 1:  #Attribute specified in only one condition - do probabilistic switch of whole attribute state (Attribute type makes no difference)
-                    if attRef in p_self_specifiedAttList and random.random() > probability:
-                        i = self.specified_attributes.index(attRef) #reference to the position of the attribute in the rule representation
+                    if att in self_specified_attributes and random.random() > probability:
+                        i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
                         cl.condition.append(self.condition.pop(i)) #Take attribute from self and add to cl
-                        cl.specified_attributes.append(attRef)
-                        self.specified_attributes.remove(attRef)
+                        cl.specified_attributes.append(att)
+                        self.specified_attributes.remove(att)
                         changed = True #Remove att from self and add to cl
 
 
-                    if attRef in p_cl_specifiedAttList and random.random() < probability:
-                        i = cl.specified_attributes.index(attRef) #reference to the position of the attribute in the rule representation
+                    if att in cl_specified_attributes and random.random() < probability:
+                        i = cl.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
                         self.condition.append(cl.condition.pop(i)) #Take attribute from self and add to cl
-                        self.specified_attributes.append(attRef)
-                        cl.specified_attributes.remove(attRef)
+                        self.specified_attributes.append(att)
+                        cl.specified_attributes.remove(att)
                         changed = True #Remove att from cl and add to self.
 
 
@@ -238,42 +235,42 @@ class Classifier:
                     #-------------------------------------------------------
                     # CONTINUOUS ATTRIBUTE
                     #-------------------------------------------------------
-                    if attributeInfo[0]:
-                        i_cl1 = self.specified_attributes.index(attRef) #pairs with self (classifier 1)
-                        i_cl2 = cl.specified_attributes.index(attRef)   #pairs with cl (classifier 2)
-                        tempKey = random.randint(0,3) #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Self absorbs cl, or cl absorbs self.
-                        if tempKey == 0:    #Swap minimum
+                    if attribute_info[0]:
+                        i_cl1 = self.specified_attributes.index(att) #pairs with self (classifier 1)
+                        i_cl2 = cl.specified_attributes.index(att)   #pairs with cl (classifier 2)
+                        tmp_key = random.randint(0,3) #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Self absorbs cl, or cl absorbs self.
+                        if tmp_key == 0:    #Swap minimum
                             temp = self.condition[i_cl1][0]
                             self.condition[i_cl1][0] = cl.condition[i_cl2][0]
                             cl.condition[i_cl2][0] = temp
-                        elif tempKey == 1:  #Swap maximum
+                        elif tmp_key == 1:  #Swap maximum
                             temp = self.condition[i_cl1][1]
                             self.condition[i_cl1][1] = cl.condition[i_cl2][1]
                             cl.condition[i_cl2][1] = temp
                         else: #absorb range
-                            allList = self.condition[i_cl1] + cl.condition[i_cl2]
-                            newMin = min(allList)
-                            newMax = max(allList)
-                            if tempKey == 2:  #self absorbs cl
-                                self.condition[i_cl1] = [newMin,newMax]
+                            all_list = self.condition[i_cl1] + cl.condition[i_cl2]
+                            new_min = min(all_list)
+                            new_max = max(all_list)
+                            if tmp_key == 2:  #self absorbs cl
+                                self.condition[i_cl1] = [new_min,new_max]
                                 #Remove cl
                                 cl.condition.pop(i_cl2)
-                                cl.specified_attributes.remove(attRef)
+                                cl.specified_attributes.remove(att)
                             else: #cl absorbs self
-                                cl.condition[i_cl2] = [newMin,newMax]
+                                cl.condition[i_cl2] = [new_min,new_max]
                                 #Remove self
                                 self.condition.pop(i_cl1)
-                                self.specified_attributes.remove(attRef)
+                                self.specified_attributes.remove(att)
                     #-------------------------------------------------------
                     # DISCRETE ATTRIBUTE
                     #-------------------------------------------------------
                     else:
                         pass
-            tempList1 = copy.deepcopy(p_self_specifiedAttList)
-            tempList2 = copy.deepcopy(cl.specified_attributes)
-            tempList1.sort()
-            tempList2.sort()
-            if changed and (tempList1 == tempList2):
+            tmp_list1 = copy.deepcopy(self_specified_attributes)
+            tmp_list2 = copy.deepcopy(cl.specified_attributes)
+            tmp_list1.sort()
+            tmp_list2.sort()
+            if changed and (tmp_list1 == tmp_list2):
                 changed = False
 
             if self.action != cl.action and random.random() > probability:
@@ -295,26 +292,26 @@ class Classifier:
         points = []
         changed = False
         points.append( int( random.random() * ( cons.env.format_data.numb_attributes + 1 ) ) )
-        secondPoint = int( random.random() * ( cons.env.format_data.numb_attributes + 1 ) )
-        if points[0] > secondPoint:
-            tempPoint = points[0]
-            points[0] = secondPoint
-            points.append( tempPoint )
+        second_point = int( random.random() * ( cons.env.format_data.numb_attributes + 1 ) )
+        if points[0] > second_point:
+            temp_point = points[0]
+            points[0] = second_point
+            points.append( temp_point )
         else:
-            points.append( secondPoint )
+            points.append( second_point )
         if cons.env.format_data.discrete_action:
-            p_self_specifiedAttList = copy.deepcopy(self.specified_attributes)
-            p_cl_specifiedAttList = copy.deepcopy(cl.specified_attributes)
+            self_specified_attributes = copy.deepcopy(self.specified_attributes)
+            cl_specified_attributes = copy.deepcopy(cl.specified_attributes)
             for i in range( points[1] ):
                 if i >= points[0]:
-                    if i in p_self_specifiedAttList:
-                        if i not in p_cl_specifiedAttList:
+                    if i in self_specified_attributes:
+                        if i not in cl_specified_attributes:
                             index = self.specified_attributes.index(i)
                             cl.condition.append(self.condition.pop(index))
                             cl.specified_attributes.append(i)
                             self.specified_attributes.remove(i)
                             changed = True #Remove att from self and add to cl
-                    elif i in p_cl_specifiedAttList:
+                    elif i in cl_specified_attributes:
                         index = cl.specified_attributes.index(i) #reference to the position of the attribute in the rule representation
                         self.condition.append(cl.condition.pop(index)) #Take attribute from self and add to cl
                         self.specified_attributes.append(i)
@@ -324,19 +321,19 @@ class Classifier:
 
 
 
-    def phenotypeCrossover(self, cl):
+    def actionCrossover(self, cl):
         """ Crossover a continuous phenotype """
         changed = False
         if self.action[0] == cl.action[0] and self.action[1] == cl.action[1]:
             return changed
         else:
-            tempKey = random.random() < 0.5 #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Children preserve parent phenotypes.
-            if tempKey: #Swap minimum
+            tmp_key = random.random() < 0.5 #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Children preserve parent phenotypes.
+            if tmp_key: #Swap minimum
                 temp = self.action[0]
                 self.action[0] = cl.action[0]
                 cl.action[0] = temp
                 changed = True
-            elif tempKey:  #Swap maximum
+            elif tmp_key:  #Swap maximum
                 temp = self.action[1]
                 self.action[1] = cl.action[1]
                 cl.action[1] = temp
@@ -351,22 +348,22 @@ class Classifier:
         #-------------------------------------------------------
         # MUTATE CONDITION
         #-------------------------------------------------------
-        for attRef in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-            attributeInfo = cons.env.format_data.attribute_info[attRef]
-            if random.random() < cons.mu and state[attRef] != cons.labelMissingData:
+        for att in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
+            attribute_info = cons.env.format_data.attribute_info[att]
+            if random.random() < cons.mu and state[att] != cons.missing_label:
                 #MUTATION--------------------------------------------------------------------------------------------------------------
-                if attRef not in self.specified_attributes: #Attribute not yet specified
-                    self.specified_attributes.append(attRef)
-                    self.condition.append(self.buildMatch(attRef, state)) #buildMatch handles both discrete and continuous attributes
+                if att not in self.specified_attributes: #Attribute not yet specified
+                    self.specified_attributes.append(att)
+                    self.condition.append(self.buildMatch(att, state)) #buildMatch handles both discrete and continuous attributes
                     changed = True
 
-                elif attRef in self.specified_attributes: #Attribute already specified
-                    i = self.specified_attributes.index(attRef) #reference to the position of the attribute in the rule representation
+                elif att in self.specified_attributes: #Attribute already specified
+                    i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
                     #-------------------------------------------------------
                     # DISCRETE OR CONTINUOUS ATTRIBUTE - remove attribute specification with 50% chance if we have continuous attribute, or 100% if discrete attribute.
                     #-------------------------------------------------------
-                    if not attributeInfo[0] or random.random() > 0.5:
-                        self.specified_attributes.remove(attRef)
+                    if not attribute_info[0] or random.random() > 0.5:
+                        self.specified_attributes.remove(att)
                         self.condition.pop(i) #buildMatch handles both discrete and continuous attributes
                         changed = True
                     #-------------------------------------------------------
@@ -374,18 +371,18 @@ class Classifier:
                     #-------------------------------------------------------
                     else:
                         #Mutate continuous range - based on Bacardit 2009 - Select one bound with uniform probability and add or subtract a randomly generated offset to bound, of size between 0 and 50% of att domain.
-                        attRange = float(attributeInfo[1][1]) - float(attributeInfo[1][0])
-                        mutateRange = random.random()*0.5*attRange
+                        att_range = float(attribute_info[1][1]) - float(attribute_info[1][0])
+                        mutate_range = random.random()*0.5*att_range
                         if random.random() > 0.5: #Mutate minimum
                             if random.random() > 0.5: #Add
-                                self.condition[i][0] += mutateRange
+                                self.condition[i][0] += mutate_range
                             else: #Subtract
-                                self.condition[i][0] -= mutateRange
+                                self.condition[i][0] -= mutate_range
                         else: #Mutate maximum
                             if random.random() > 0.5: #Add
-                                self.condition[i][1] += mutateRange
+                                self.condition[i][1] += mutate_range
                             else: #Subtract
-                                self.condition[i][1] -= mutateRange
+                                self.condition[i][1] -= mutate_range
 
                         #Repair range - such that min specified first, and max second.
                         self.condition[i].sort()
@@ -399,11 +396,11 @@ class Classifier:
         # MUTATE PHENOTYPE
         #-------------------------------------------------------
         if cons.env.format_data.discrete_action:
-            nowChanged = self.discreteActionMutation()
+            action_changed = self.discreteActionMutation()
         #else:
         #    nowChanged = self.continuousActionMutation(phenotype)
 
-        if changed or nowChanged:
+        if changed or action_changed:
             return True
 
 
@@ -411,10 +408,10 @@ class Classifier:
         """ Mutate this rule's discrete phenotype. """
         changed = False
         if random.random() < cons.mu:
-            phenotypeList = copy.deepcopy(cons.env.format_data.action_list)
-            phenotypeList.remove(self.action)
-            newPhenotype = random.sample(phenotypeList,1)
-            self.action = newPhenotype[0]
+            action_list = copy.deepcopy(cons.env.format_data.action_list)
+            action_list.remove(self.action)
+            new_action = random.sample(action_list,1)
+            self.action = new_action[0]
             changed= True
 
         return changed
@@ -424,30 +421,30 @@ class Classifier:
         """ Mutate this rule's continuous phenotype. """
         changed = False
         if random.random() < cons.mu: #Mutate continuous phenotype
-            phenRange = self.action[1] - self.action[0]
-            mutateRange = random.random()*0.5*phenRange
-            tempKey = random.randint(0,2) #Make random choice between 3 scenarios, mutate minimums, mutate maximums, mutate both
-            if tempKey == 0: #Mutate minimum
-                if random.random() > 0.5 or self.action[0] + mutateRange <= phenotype: #Checks that mutated range still contains current phenotype
-                    self.action[0] += mutateRange
+            action_range = self.action[1] - self.action[0]
+            mutate_range = random.random()*0.5*action_range
+            tmp_key = random.randint(0,2) #Make random choice between 3 scenarios, mutate minimums, mutate maximums, mutate both
+            if tmp_key == 0: #Mutate minimum
+                if random.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
+                    self.action[0] += mutate_range
                 else: #Subtract
-                    self.action[0] -= mutateRange
+                    self.action[0] -= mutate_range
                 changed = True
-            elif tempKey == 1: #Mutate maximum
-                if random.random() > 0.5 or self.action[1] - mutateRange >= phenotype: #Checks that mutated range still contains current phenotype
-                    self.action[1] -= mutateRange
+            elif tmp_key == 1: #Mutate maximum
+                if random.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
+                    self.action[1] -= mutate_range
                 else: #Subtract
-                    self.action[1] += mutateRange
+                    self.action[1] += mutate_range
                 changed = True
             else: #mutate both
-                if random.random() > 0.5 or self.action[0] + mutateRange <= phenotype: #Checks that mutated range still contains current phenotype
-                    self.action[0] += mutateRange
+                if random.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
+                    self.action[0] += mutate_range
                 else: #Subtract
-                    self.action[0] -= mutateRange
-                if random.random() > 0.5 or self.action[1] - mutateRange >= phenotype: #Checks that mutated range still contains current phenotype
-                    self.action[1] -= mutateRange
+                    self.action[0] -= mutate_range
+                if random.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
+                    self.action[1] -= mutate_range
                 else: #Subtract
-                    self.action[1] += mutateRange
+                    self.action[1] += mutate_range
                 changed = True
 
             #Repair range - such that min specified first, and max second.
@@ -481,7 +478,7 @@ class Classifier:
 
     def isPossibleSubsumer(self):
         """ Returns if the classifier (self) is a possible subsumer. A classifier must be as or more accurate than the classifier it is trying to subsume.  """
-        if self.actionCount > cons.theta_sub and self.error < cons.err_sub: #self.prediction < cons.err_sub: (why does it work?)
+        if self.action_cnt > cons.theta_sub and self.error < cons.err_sub: #self.prediction < cons.err_sub: (why does it work?)
             return True
         return False
 
@@ -491,18 +488,18 @@ class Classifier:
         if len(self.specified_attributes) >= len(cl.specified_attributes):# and self.action != cl.action and self.prediction < cl.prediction and self.error > cl.error:
             return False
         for i in range(len(self.specified_attributes)): #Check each attribute specified in self.condition
-            attributeInfo = cons.env.format_data.attribute_info[self.specified_attributes[i]]
+            attribute_info = cons.env.format_data.attribute_info[self.specified_attributes[i]]
             if self.specified_attributes[i] not in cl.specified_attributes:
                 return False
             #-------------------------------------------------------
             # CONTINUOUS ATTRIBUTE
             #-------------------------------------------------------
-            otherRef = cl.specified_attributes.index(self.specified_attributes[i])
-            if attributeInfo[0]:
+            other_ref = cl.specified_attributes.index(self.specified_attributes[i])
+            if attribute_info[0]:
                 #If self has a narrower ranger of values than it is a subsumer
-                if self.condition[i][0] < cl.condition[otherRef][0]:
+                if self.condition[i][0] < cl.condition[other_ref][0]:
                     return False
-                if self.condition[i][1] > cl.condition[otherRef][1]:
+                if self.condition[i][1] > cl.condition[other_ref][1]:
                     return False
             #else:   # discrete attributes
             #    if self.condition[i] != cl.condition[otherRef]:
@@ -513,50 +510,50 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # DELETION METHOD
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def getDelProb(self, meanFitness):
+    def getDelProb(self, avg_fitness):
         """  Returns the vote for deletion of the classifier. """
-        self.delete_vote = self.mean_actionset_sz * self.numerosity
-        if self.fitness < cons.delta*meanFitness * self.numerosity and self.actionCount > cons.theta_del:
+        self.delete_vote = self.avg_actionset_size * self.numerosity
+        if self.action_cnt > cons.theta_del and self.fitness < cons.delta*avg_fitness * self.numerosity:
             if self.fitness > 0.0:
-                self.delete_vote *= meanFitness * self.numerosity / self.fitness
+                self.delete_vote *= avg_fitness * self.numerosity / self.fitness
             else:
-                self.delete_vote *= meanFitness / (cons.init_fit / self.numerosity)
+                self.delete_vote *= avg_fitness / (cons.init_fit / self.numerosity)
         return self.delete_vote
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # OTHER METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def buildMatch(self, attRef, state):
+    def buildMatch(self, att, state):
         """ Builds a matching condition for the classifierCovering method. """
-        attributeInfo = cons.env.format_data.attribute_info[attRef]
+        attribute_info = cons.env.format_data.attribute_info[att]
         #-------------------------------------------------------
         # CONTINUOUS ATTRIBUTE
         #-------------------------------------------------------
-        if attributeInfo[0]:
-            attRange = attributeInfo[1][1] - attributeInfo[1][0]
-            rangeRadius = random.randint(25,75)*0.01*attRange / 2.0 #Continuous initialization domain radius.
-            Low = state[attRef] - rangeRadius
-            High = state[attRef] + rangeRadius
-            condList = [Low,High] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
+        if attribute_info[0]:
+            att_range = attribute_info[1][1] - attribute_info[1][0]
+            range_radius = random.randint(25,75)*0.01*att_range / 2.0 #Continuous initialization domain radius.
+            low = state[att] - range_radius
+            high = state[att] + range_radius
+            condition_list = [low,high] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
         #-------------------------------------------------------
         # DISCRETE ATTRIBUTE
         #-------------------------------------------------------
         else:
-            condList = state[attRef] #State already formatted like GABIL in DataManagement
+            condition_list = state[att] #State already formatted like GABIL in DataManagement
 
-        return condList
+        return condition_list
 
 
     def equals(self, cl):
         """ Returns if the two classifiers are identical in condition and phenotype. This works for discrete or continuous attributes or phenotypes. """
         if cl.action == self.action and len(cl.specified_attributes) == len(self.specified_attributes): #Is phenotype the same and are the same number of attributes specified - quick equality check first.
-            clRefs = sorted(cl.specified_attributes)
-            selfRefs = sorted(self.specified_attributes)
-            if clRefs == selfRefs:
+            cl_atts = sorted(cl.specified_attributes)
+            self_atts = sorted(self.specified_attributes)
+            if cl_atts == self_atts:
                 for i in range(len(cl.specified_attributes)):
-                    tempIndex = self.specified_attributes.index(cl.specified_attributes[i])
-                    if cl.condition[i] == self.condition[tempIndex]:
+                    tmp_index = self.specified_attributes.index(cl.specified_attributes[i])
+                    if cl.condition[i] == self.condition[tmp_index]:
                         pass
                     else:
                         return False
@@ -567,12 +564,12 @@ class Classifier:
     def updateXCSParameters(self, reward):
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
         payoff = reward
-        if self.actionCount >= 1.0 / cons.beta:
+        if self.action_cnt >= 1.0 / cons.beta:
             self.error = self.error + cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
             self.prediction = self.prediction + cons.beta * ( payoff - self.prediction )
         else:
-            self.error = ( self.error * ( self.actionCount - 1 ) + math.fabs( payoff - self.prediction ) ) / self.actionCount
-            self.prediction = ( self.prediction * ( self.actionCount - 1 ) + payoff ) / self.actionCount
+            self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
+            self.prediction = ( self.prediction * ( self.action_cnt - 1 ) + payoff ) / self.action_cnt
         if self.error <= cons.offset_epsilon:
             self.accuracy = 1
         else:
@@ -580,18 +577,18 @@ class Classifier:
 
 
     def updateFitness(self):
-        if self.actionCount >= 1.0 / cons.beta:
+        if self.action_cnt >= 1.0 / cons.beta:
             self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
         else:
-            self.fitness = ( self.fitness * ( self.actionCount - 1 ) + self.accuracy ) / self.actionCount
+            self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
 
 
-    def updateActionSetSize(self, actionSetSize):
+    def updateActionSetSize(self, actionset_size):
         """  Updates the average action set size. """
-        if self.actionCount >= 1.0 / cons.beta:
-            self.mean_actionset_sz = self.mean_actionset_sz + cons.beta * (actionSetSize - self.mean_actionset_sz)
+        if self.action_cnt >= 1.0 / cons.beta:
+            self.avg_actionset_size = self.avg_actionset_size + cons.beta * (actionset_size - self.avg_actionset_size)
         else:
-            self.mean_actionset_sz = (self.mean_actionset_sz * (self.actionCount-1)+ actionSetSize) / float(self.actionCount)
+            self.avg_actionset_size = (self.avg_actionset_size * (self.action_cnt-1)+ actionset_size) / float(self.action_cnt)
 
 
     def updateExperience(self):
@@ -601,7 +598,7 @@ class Classifier:
 
     def updateActionExp(self):
         """ Increases the experience of the classifier by one. Once an epoch has completed, rule accuracy can't change."""
-        self.actionCount += 1
+        self.action_cnt += 1
 
 
     def updateGACount(self):
@@ -644,34 +641,34 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def printClassifier(self):
         """ Formats and returns an output string describing this classifier. """
-        classifierString = ""
-        for attRef in range(cons.env.format_data.numb_attributes):
-            attributeInfo = cons.env.format_data.attribute_info[attRef]
-            if attRef in self.specified_attributes:  #If the attribute was specified in the rule
-                i = self.specified_attributes.index(attRef)
+        classifier_info = ""
+        for att in range(cons.env.format_data.numb_attributes):
+            attribute_info = cons.env.format_data.attribute_info[att]
+            if att in self.specified_attributes:  #If the attribute was specified in the rule
+                i = self.specified_attributes.index(att)
                 #-------------------------------------------------------
                 # CONTINUOUS ATTRIBUTE
                 #-------------------------------------------------------
-                if attributeInfo[0]:
-                    classifierString += str(self.condition[i][0])+';'+str(self.condition[i][1]) + "\t"
+                if attribute_info[0]:
+                    classifier_info += str(self.condition[i][0])+';'+str(self.condition[i][1]) + "\t"
                 #-------------------------------------------------------
                 # DISCRETE ATTRIBUTE
                 #-------------------------------------------------------
                 else:
-                    classifierString += str(self.condition[i]) + "\t"
+                    classifier_info += str(self.condition[i]) + "\t"
             else: # Attribute is wild.
-                classifierString += '#' + "\t"
+                classifier_info += '#' + "\t"
         #-------------------------------------------------------------------------------
         specificity = len(self.condition) / float(cons.env.format_data.numb_attributes)
 
         if cons.env.format_data.discrete_action:
-            classifierString += str(self.action)+"\t"
+            classifier_info += str(self.action)+"\t"
         else:
-            classifierString += str(self.action[0])+';'+str(self.action[1])+"\t"
+            classifier_info += str(self.action[0])+';'+str(self.action[1])+"\t"
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        classifierString += '{:.1f}'.format(self.prediction)+"\t"+'{:.2f}'.format(self.error)+"\t"+'{:.2f}'.format(self.fitness)+"\t"+str(self.numerosity)+"\t"+str(self.ga_count)+"\t"
-        classifierString += str(self.subsumer_cnt)+"\t\t"+'{:.1f}'.format(self.mean_actionset_sz)+"\t\t"+str(self.ga_timestamp)+"\t\t"+str(self.init_timestamp)+"\t\t"+'{:.2f}'.format(specificity)+"\t\t"
-        classifierString += '{:.1f}'.format(self.delete_vote)+"\t\t"+str(self.actionCount)+"\n"
+        classifier_info += '{:.1f}'.format(self.prediction)+"\t"+'{:.2f}'.format(self.error)+"\t"+'{:.2f}'.format(self.fitness)+"\t"+str(self.numerosity)+"\t"+str(self.ga_count)+"\t"
+        classifier_info += str(self.subsumer_cnt)+"\t\t"+'{:.1f}'.format(self.avg_actionset_size)+"\t\t"+str(self.ga_timestamp)+"\t\t"+str(self.init_timestamp)+"\t\t"+'{:.2f}'.format(specificity)+"\t\t"
+        classifier_info += '{:.1f}'.format(self.delete_vote)+"\t\t"+str(self.action_cnt)+"\n"
 
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        return classifierString
+        return classifier_info

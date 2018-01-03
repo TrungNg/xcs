@@ -11,28 +11,35 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 
 #Import Required Modules------------------------------------
+import random
 from xcs_timer import Timer
 from xcs_config_parser import ConfigParser
 from xcs_offline_environment import Offline_Environment
 from xcs_algorithm import XCS
-from xcs_constants import *
+from xcs_constants import cons
 #-----------------------------------------------------------
 
 helpstr = """Failed attempt to run e-LCS.  Please ensure that a configuration file giving all run parameters has been specified."""
 
 #Specify the name and file path for the configuration file.
-configurationFile = "XCS_Configuration_File.txt"
+config_file = "XCS_Configuration_File.txt"
 
 #Obtain all run parameters from the configuration file and store them in the 'Constants' module.
-ConfigParser(configurationFile)
+ConfigParser( config_file )
+
+#Set random seed if specified.-----------------------------------------------
+if cons.use_seed:
+    random.seed(cons.random_seed)
+else:
+    random.seed(None)
 
 #Initialize the 'Timer' module which tracks the run time of algorithm and it's different components.
 timer = Timer()
-cons.referenceTimer(timer)
+cons.referenceTimer( timer )
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 env = Offline_Environment()
-cons.referenceEnv(env) #Passes the environment to 'Constants' (cons) so that it can be easily accessed from anywhere within the code.
+cons.referenceEnv( env ) #Passes the environment to 'Constants' (cons) so that it can be easily accessed from anywhere within the code.
 cons.parseIterations() #Identify the maximum number of learning iterations as well as evaluation checkpoints.
 
 #Run the e-LCS algorithm.

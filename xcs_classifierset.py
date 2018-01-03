@@ -14,7 +14,6 @@ from xcs_constants import *
 from xcs_classifier import Classifier
 import random
 import copy
-import sys
 #--------------------------------------------
 
 class ClassifierSet:
@@ -30,7 +29,7 @@ class ClassifierSet:
         self.mean_generality = 0.0
         self.attribute_spec_list = []
         self.attribute_acc_list = []
-        self.ave_phenotype_range = 0.0
+        self.avg_action_range = 0.0
 
         # Set Constructors-------------------------------------
         if a==None:
@@ -115,15 +114,15 @@ class ClassifierSet:
         # COVERING
         #-------------------------------------------------------
         while do_covering:
-            missing_actions = [ action for action in cons.env.format_data.action_list if action not in matched_phenotype_list ]
-            newCl = Classifier(iteration, state, random.choice( missing_actions ))
-            self.addClassifierToPopulation( newCl )
-            self.match_set.append( len(self.pop_set)-1 )  # Add covered classifier to match set
-            matched_phenotype_list.append( newCl.action )
+            missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
+            new_cl = Classifier(iteration, state, random.choice( missing_actions ))
+            self.addClassifierToPopulation( new_cl )
+            self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
+            matched_phenotype_list.append( new_cl.action )
             #totalMatchSetPrediction += newCl.prediction * newCl.numerosity
             #totalPrediction += newCl.prediction * newCl.numerosity
             if len( matched_phenotype_list ) >= cons.theta_mna: #totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and
-                self.deletion( iteration )
+                self.deletion()
                 self.match_set = []
                 do_covering = False
 
@@ -157,7 +156,7 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER DELETION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def deletion(self, exploreIter):
+    def deletion(self):
         """ Returns the population size back to the maximum set by the user by deleting rules. """
         cons.timer.startTimeDeletion()
         while self.micro_size > cons.N:
@@ -168,23 +167,23 @@ class ClassifierSet:
     def deleteFromPopulation(self):
         """ Deletes one classifier in the population.  The classifier that will be deleted is chosen by roulette wheel selection
         considering the deletion vote. Returns the macro-classifier which got decreased by one micro-classifier. """
-        meanFitness = self.getPopFitnessSum()/float(self.micro_size)
+        mean_fitness = self.getPopFitnessSum()/float(self.micro_size)
 
         #Calculate total wheel size------------------------------
         vote_sum = 0.0
-        voteList = []
+        vote_list = []
         for cl in self.pop_set:
-            vote = cl.getDelProb(meanFitness)
+            vote = cl.getDelProb(mean_fitness)
             vote_sum += vote
-            voteList.append(vote)
+            vote_list.append(vote)
         #--------------------------------------------------------
-        choicePoint = vote_sum * random.random() #Determine the choice point
+        choice_point = vote_sum * random.random() #Determine the choice point
 
-        newSum=0.0
-        for i in range(len(voteList)):
+        new_sum = 0.0
+        for i in range(len(vote_list)):
             cl = self.pop_set[i]
-            newSum = newSum + voteList[i]
-            if newSum > choicePoint: #Select classifier for deletion
+            new_sum = new_sum + vote_list[i]
+            if new_sum > choice_point: #Select classifier for deletion
                 #Delete classifier----------------------------------
                 cl.updateNumerosity(-1)
                 self.micro_size -= 1
@@ -203,56 +202,56 @@ class ClassifierSet:
         self.pop_set.pop(ref)
 
 
-    def deleteFromMatchSet(self, deleteRef):
+    def deleteFromMatchSet(self, cl_ref):
         """ Delete reference to classifier in population, contained in self.match_set."""
-        if deleteRef in self.match_set:
-            self.match_set.remove(deleteRef)
+        if cl_ref in self.match_set:
+            self.match_set.remove(cl_ref)
 
         #Update match set reference list--------
         for j in range(len(self.match_set)):
             ref = self.match_set[j]
-            if ref > deleteRef:
+            if ref > cl_ref:
                 self.match_set[j] -= 1
 
 
-    def deleteFromActionSet(self, deleteRef):
+    def deleteFromActionSet(self, cl_ref):
         """ Delete reference to classifier in population, contained in self.action_set."""
-        if deleteRef in self.action_set:
-            self.action_set.remove(deleteRef)
+        if cl_ref in self.action_set:
+            self.action_set.remove(cl_ref)
 
         #Update match set reference list--------
         for j in range(len(self.action_set)):
             ref = self.action_set[j]
-            if ref > deleteRef:
+            if ref > cl_ref:
                 self.action_set[j] -= 1
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # GENETIC ALGORITHM
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def runGA(self, exploreIter, state):
+    def runGA(self, iteration, state):
         """ The genetic discovery mechanism in XCS is controlled here. """
         #-------------------------------------------------------
         # GA RUN REQUIREMENT
         #-------------------------------------------------------
-        if (exploreIter - self.getIterStampAverage()) < cons.theta_GA:  #Does the action set meet the requirements for activating the GA?
+        if (iteration - self.getIterStampAverage()) < cons.theta_GA:  #Does the action set meet the requirements for activating the GA?
             return
 
-        self.setIterStamps(exploreIter) #Updates the iteration time stamp for all rules in the match set (which the GA opperates in).
+        self.setIterStamps(iteration) #Updates the iteration time stamp for all rules in the match set (which the GA opperates in).
         changed = False
 
         #-------------------------------------------------------
         # SELECT PARENTS - Niche GA - selects parents from the match set
         #-------------------------------------------------------
         cons.timer.startTimeSelection()
-        if cons.selectionMethod == "roulette":
-            selectList = self.selectClassifierRW()
-            clP1 = selectList[0]
-            clP2 = selectList[1]
-        elif cons.selectionMethod == "tournament":
-            selectList = self.selectClassifierT()
-            clP1 = selectList[0]
-            clP2 = selectList[1]
+        if cons.selection_method == "roulette":
+            selected_list = self.selectClassifierRW()
+            clP1 = selected_list[0]
+            clP2 = selected_list[1]
+        elif cons.selection_method == "tournament":
+            selected_list = self.selectClassifierT()
+            clP1 = selected_list[0]
+            clP2 = selected_list[1]
         else:
             print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
@@ -261,11 +260,11 @@ class ClassifierSet:
         #-------------------------------------------------------
         # INITIALIZE OFFSPRING
         #-------------------------------------------------------
-        cl1  = Classifier(clP1, exploreIter)
+        cl1  = Classifier(clP1, iteration)
         if clP2 == None:
-            cl2 = Classifier(clP1, exploreIter)
+            cl2 = Classifier(clP1, iteration)
         else:
-            cl2 = Classifier(clP2, exploreIter)
+            cl2 = Classifier(clP2, iteration)
 
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
@@ -282,13 +281,13 @@ class ClassifierSet:
         if changed:
             cl1.setPrediction((cl1.prediction + cl2.prediction)/2)
             cl1.setError((cl1.error + cl2.error)/2.0)
-            cl1.setFitness(cons.fitnessReduction * (cl1.fitness + cl2.fitness)/2.0)
+            cl1.setFitness(cons.fitness_reduction * (cl1.fitness + cl2.fitness)/2.0)
             cl2.setPrediction(cl1.prediction)
             cl2.setError(cl1.error)
             cl2.setFitness(cl1.fitness)
 
-        cl1.setFitness(cons.fitnessReduction * cl1.fitness)
-        cl2.setFitness(cons.fitnessReduction * cl2.fitness)
+        cl1.setFitness(cons.fitness_reduction * cl1.fitness)
+        cl2.setFitness(cons.fitness_reduction * cl2.fitness)
         #-------------------------------------------------------
         # MUTATION OPERATOR
         #-------------------------------------------------------
@@ -298,8 +297,8 @@ class ClassifierSet:
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         if changed or nowchanged or howaboutnow:
-            self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2, exploreIter) #Subsumption
-        self.deletion(exploreIter)
+            self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2) #Subsumption
+        self.deletion()
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -308,57 +307,57 @@ class ClassifierSet:
     def selectClassifierRW(self):
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for actionSet set or 'niche' selection.
-        setList = copy.deepcopy(self.action_set)
+        set_list = copy.deepcopy(self.action_set)
 
-        if len(setList) > 2:
-            selectList = [None, None]
-            currentCount = 0 #Pick two parents
+        if len(set_list) > 2:
+            selected_list = [None, None]
+            count = 0 #Pick two parents
             #-----------------------------------------------
-            while currentCount < 2:
-                fitSum = self.getFitnessSum(setList)
+            while count < 2:
+                fit_sum = self.getFitnessSum(set_list)
 
-                choiceP = random.random() * fitSum
+                choice_point = random.random() * fit_sum
                 i=0
-                sumCl = self.pop_set[setList[i]].fitness
-                while choiceP > sumCl:
+                sum_cl = self.pop_set[set_list[i]].fitness
+                while choice_point > sum_cl:
                     i=i+1
-                    sumCl += self.pop_set[setList[i]].fitness
+                    sum_cl += self.pop_set[set_list[i]].fitness
 
-                selectList[currentCount] = self.pop_set[setList[i]]
-                setList.remove(setList[i])
-                currentCount += 1
+                selected_list[count] = self.pop_set[set_list[i]]
+                set_list.remove(set_list[i])
+                count += 1
             #-----------------------------------------------
-        elif len(setList) == 2:
-            selectList = [self.pop_set[setList[0]],self.pop_set[setList[1]]]
-        elif len(setList) == 1:
-            selectList = [self.pop_set[setList[0]],self.pop_set[setList[0]]]
+        elif len(set_list) == 2:
+            selected_list = [self.pop_set[set_list[0]],self.pop_set[set_list[1]]]
+        elif len(set_list) == 1:
+            selected_list = [self.pop_set[set_list[0]],self.pop_set[set_list[0]]]
         else:
             print("ClassifierSet: Error in parent selection.")
 
-        return selectList
+        return selected_list
 
 
     def selectClassifierT(self):
         """  Selects parents using tournament selection according to the fitness of the classifiers. """
-        selectList = [None, None]
-        currentCount = 0
-        setList = self.action_set #actionSet set is a list of reference IDs
+        selected_list = [None, None]
+        count = 0
+        set_list = self.action_set #actionSet set is a list of reference IDs
 
-        while currentCount < 2:
-            tSize = int(len(setList)*cons.theta_sel)
-            posList = random.sample(setList,tSize)
+        while count < 2:
+            tournament_size = int(len(set_list)*cons.theta_sel)
+            post_list = random.sample(set_list,tournament_size)
 
-            bestF = 0
-            bestC = self.action_set[0]
-            for j in posList:
-                if self.pop_set[j].fitness > bestF:
-                    bestF = self.pop_set[j].fitness
-                    bestC = j
+            highest_fitness = 0
+            best_cl = self.action_set[0]
+            for j in post_list:
+                if self.pop_set[j].fitness > highest_fitness:
+                    highest_fitness = self.pop_set[j].fitness
+                    best_cl = j
 
-            selectList[currentCount] = self.pop_set[bestC]
-            currentCount += 1
+            selected_list[count] = self.pop_set[ best_cl ]
+            count += 1
 
-        return selectList
+        return selected_list
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -422,17 +421,17 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def addClassifierToPopulation(self, cl, covering = False):
         """ Adds a classifier to the set and increases the microPopSize value accordingly."""
-        oldCl = None
+        old_cl = None
         if not covering:
-            oldCl = self.getIdenticalClassifier(cl)
-        if oldCl != None: #found identical classifier
-            oldCl.updateNumerosity(1)
+            old_cl = self.getIdenticalClassifier(cl)
+        if old_cl != None: #found identical classifier
+            old_cl.updateNumerosity(1)
         else:
             self.pop_set.append(cl)
         self.micro_size += 1
 
 
-    def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2, exploreIter):
+    def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2):
         """ Inserts both discovered classifiers and activates GA subsumption if turned on. Also checks for default rule (i.e. rule with completely general condition) and
         prevents such rules from being added to the population, as it offers no predictive value within XCS. """
         #-------------------------------------------------------
@@ -457,22 +456,22 @@ class ClassifierSet:
                 self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
 
 
-    def updateSets(self, exploreIter, reward):
+    def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
-        actionSetNumerosity = 0
+        action_set_numer = 0
         for ref in self.action_set:
-            actionSetNumerosity += self.pop_set[ref].numerosity
-        accuracySum = 0.0
+            action_set_numer += self.pop_set[ref].numerosity
+        accuracy_sum = 0.0
         for ref in self.action_set:
             #self.pop_set[ref].updateExperience()
             #self.pop_set[ref].updateMatchSetSize(matchSetNumerosity)
             #if ref in self.action_set:
             self.pop_set[ref].updateActionExp()
-            self.pop_set[ref].updateActionSetSize( actionSetNumerosity )
+            self.pop_set[ref].updateActionSetSize( action_set_numer )
             self.pop_set[ref].updateXCSParameters( reward )
-            accuracySum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
+            accuracy_sum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
         for ref in self.action_set:
-            self.pop_set[ref].setAccuracy( 1000 * self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracySum )
+            self.pop_set[ref].setAccuracy( 1000 * self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
             self.pop_set[ref].updateFitness()
 
 
@@ -481,46 +480,46 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def getIterStampAverage(self):
         """ Returns the average of the time stamps in the match set. """
-        sumCl=0.0
-        numSum=0.0
+        sum_cl = 0.0
+        sum_numer = 0.0
         for i in range(len(self.action_set)):
             ref = self.action_set[i]
-            sumCl += self.pop_set[ref].ga_timestamp * self.pop_set[ref].numerosity
-            numSum += self.pop_set[ref].numerosity #numerosity sum of match set
-        return sumCl/float(numSum)
+            sum_cl += self.pop_set[ref].ga_timestamp * self.pop_set[ref].numerosity
+            sum_numer += self.pop_set[ref].numerosity #numerosity sum of match set
+        return sum_cl/float( sum_numer )
 
 
-    def setIterStamps(self, exploreIter):
+    def setIterStamps(self, iteration):
         """ Sets the time stamp of all classifiers in the set to the current time. The current time
         is the number of exploration steps executed so far.  """
         for i in range(len(self.action_set)):
             ref = self.action_set[i]
-            self.pop_set[ref].updateTimeStamp(exploreIter)
+            self.pop_set[ref].updateTimeStamp(iteration)
 
     #def setPredictionArray(self,newPredictionArray):
     #    predictionArray = newPredictionArray
 
-    def getFitnessSum(self, setList):
+    def getFitnessSum(self, cl_set):
         """ Returns the sum of the fitnesses of all classifiers in the set. """
-        sumCl=0.0
-        for i in range(len(setList)):
-            ref = setList[i]
-            sumCl += self.pop_set[ref].fitness
-        return sumCl
+        sum_cl = 0.0
+        for i in range(len(cl_set)):
+            ref = cl_set[i]
+            sum_cl += self.pop_set[ref].fitness
+        return sum_cl
 
 
     def getPopFitnessSum(self):
         """ Returns the sum of the fitnesses of all classifiers in the set. """
-        sumCl = 0.0
+        sum_cl = 0.0
         for cl in self.pop_set:
-            sumCl += cl.fitness
-        return sumCl
+            sum_cl += cl.fitness
+        return sum_cl
 
 
-    def getIdenticalClassifier(self, newCl):
+    def getIdenticalClassifier(self, new_cl):
         """ Looks for an identical classifier in the population. """
         for ref in self.match_set:
-            if newCl.equals(self.pop_set[ref]):
+            if new_cl.equals(self.pop_set[ref]):
                 return self.pop_set[ref]
         return None
 
@@ -533,34 +532,34 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # EVALUTATION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def runPopAveEval(self, exploreIter):
+    def runPopAveEval(self):
         """ Calculates some summary evaluations across the rule population including average generality. """
-        genSum = 0
+        generality_sum = 0
         #agedCount = 0
         for cl in self.pop_set:
-            genSum += (cons.env.format_data.numb_attributes - len(cl.condition)) * cl.numerosity
+            generality_sum += (cons.env.format_data.numb_attributes - len(cl.condition)) * cl.numerosity
         if self.micro_size == 0:
             self.mean_generality = 'NA'
         else:
-            self.mean_generality = genSum / float(self.micro_size * cons.env.format_data.numb_attributes)
+            self.mean_generality = generality_sum / float(self.micro_size * cons.env.format_data.numb_attributes)
 
         #-------------------------------------------------------
         # CONTINUOUS PHENOTYPE
         #-------------------------------------------------------
         if not cons.env.format_data.discrete_action:
-            sumRuleRange = 0
+            sum_rule_range = 0
             for cl in self.pop_set:
-                sumRuleRange += (cl.action[1] - cl.action[0])*cl.numerosity
-            phenotypeRange = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
-            self.ave_phenotype_range = (sumRuleRange / float(self.micro_size)) / float(phenotypeRange)
+                sum_rule_range += (cl.action[1] - cl.action[0])*cl.numerosity
+            action_range = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
+            self.avg_action_range = (sum_rule_range / float(self.micro_size)) / float(action_range)
 
 
-    def runAttGeneralitySum(self, isEvaluationSummary):
+    def runAttGeneralitySum(self, is_eval_summary):
         """ Determine the population-wide frequency of attribute specification, and accuracy weighted specification.  Used in complete rule population evaluations. """
-        if isEvaluationSummary:
+        if is_eval_summary:
             self.attribute_spec_list = []
             self.attribute_acc_list = []
-            for i in range(cons.env.format_data.numb_attributes):
+            for _ in range(cons.env.format_data.numb_attributes):
                 self.attribute_spec_list.append(0)
                 self.attribute_acc_list.append(0.0)
             for cl in self.pop_set:
@@ -569,15 +568,15 @@ class ClassifierSet:
                     self.attribute_acc_list[ref] += cl.numerosity * cl.accuracy
 
 
-    def getPopTrack(self, accuracy, exploreIter, trackingFrequency):
+    def getPopTrack(self, accuracy, iteration, tracking_frequency):
         """ Returns a formated output string to be printed to the Learn Track output file. """
-        trackString = str(exploreIter)+ "\t" + str(len(self.pop_set)) + "\t" + str(self.micro_size) + "\t" + str(accuracy) + "\t" + str(self.mean_generality)  + "\t" + str(cons.timer.returnGlobalTimer())+ "\n"
+        population_info = str(iteration)+ "\t" + str(len(self.pop_set)) + "\t" + str(self.micro_size) + "\t" + str(accuracy) + "\t" + str(self.mean_generality)  + "\t" + str(cons.timer.returnGlobalTimer())+ "\n"
         if cons.env.format_data.discrete_action: #discrete phenotype
-            print(("Epoch: "+str(int(exploreIter/trackingFrequency))+"\t Iteration: " + str(exploreIter) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
+            print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
         else: # continuous phenotype
-            print(("Epoch: "+str(int(exploreIter/trackingFrequency))+"\t Iteration: " + str(exploreIter) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.ave_phenotype_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
+            print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
 
-        return trackString
+        return population_info
 
 
     def parallelMatching( self, i ): #( ( indices, condition, state, id ) ):
