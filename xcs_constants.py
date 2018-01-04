@@ -15,9 +15,16 @@ class Constants:
         """ Takes the parameters parsed as a dictionary from xcs_config_parser and saves them as global constants. """
 
         # Major Run Parameters -----------------------------------------------------------------------------------------
+        self.online_data_generator = False if par[ 'onlineProblem' ].lower()=='false' else True     # Saved as Boolean
+        if self.online_data_generator == True:
+            self.problem_type = par[ 'onlineProblem' ]
+            sizes = par[ 'problemSizes' ].split( '.' )
+        self.problem_sizes = [ 0 ] * 3
+        for i in range( len( sizes ) ):
+            self.problem_sizes[ i ] = int( sizes[ i ] )
         self.multiprocessing = True if (par['multiprocessing']) == 'True' else False
-        self.train_file = par['trainFile']                                       #Saved as text
-        self.test_file = par['testFile']                                         #Saved as text
+        self.train_file = par['trainFile']                                      #Saved as text
+        self.test_file = par['testFile']                                        #Saved as text
         self.original_out_file = str(par['outFileName'])                        #Saved as text
         self.out_file = str(par['outFileName'])+'_XCS'                          #Saved as text
         self.checkpoint_iter = par['learningIterations']                        #Saved as text

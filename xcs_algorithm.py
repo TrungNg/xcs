@@ -91,7 +91,7 @@ class XCS:
             #-------------------------------------------------------
             if ( self.iteration%cons.tracking_frequency ) == ( cons.tracking_frequency - 1 ) and self.iteration > 0:
                 self.population.runPopAveEval()
-                tracked_accuracy = sum( self.tracked_results )/float( cons.tracking_frequency ) #Accuracy over the last "tracking_frequency" number of iterations.
+                tracked_accuracy = sum( self.tracked_results )/float( self.exploit_iters ) #Accuracy over the last "tracking_frequency" number of iterations.
                 self.exploit_iters = 0
                 self.tracked_results  = [0] * cons.tracking_frequency
                 self.learn_track.write( self.population.getPopTrack(tracked_accuracy, self.iteration+1, cons.tracking_frequency ) ) #Report learning progress to standard out and tracking file.
@@ -166,18 +166,18 @@ class XCS:
         # DISCRETE PHENOTYPE PREDICTION
         #-------------------------------------------------------
         if cons.env.format_data.discrete_action:
-            ###-DEBUG-###
             if selected_action == state_action[1]:
                 reward = 1000
-            if state_action[1] in prediction.getHighestPredictionAction():
-                self.tracked_results[iteration%cons.tracking_frequency] = 1
-            else:
-                self.tracked_results[iteration%cons.tracking_frequency] = 0
+            ###-DEBUG-###
+#             if state_action[1] in prediction.getHighestPredictionAction():
+#                 self.tracked_results[iteration%cons.tracking_frequency] = 1
+#             else:
+#                 self.tracked_results[iteration%cons.tracking_frequency] = 0
             ###-Remove above debug part and uncomment below part-###
-#             if prediction.is_exploit:
-#                 self.exploit_iters += 1
-#                 if reward == 1000:
-#                     self.tracked_results[ iteration%cons.tracking_frequency ] = 1
+            if prediction.is_exploit:
+                self.exploit_iters += 1
+                if reward == 1000:
+                    self.tracked_results[ iteration%cons.tracking_frequency ] = 1
         #-------------------------------------------------------
         # CONTINUOUS PHENOTYPE PREDICTION
         #-------------------------------------------------------
