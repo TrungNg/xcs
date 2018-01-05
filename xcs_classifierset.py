@@ -88,7 +88,7 @@ class ClassifierSet:
         """ Constructs a match set from the population. Covering is initiated if the match set is empty or total prediction of rules in match set is too low. """
         #Initial values
         do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
-        match_set_phenotypes = []
+        matchset_phenotypes = []
         #-------------------------------------------------------
         # MATCHING
         #-------------------------------------------------------
@@ -97,22 +97,22 @@ class ClassifierSet:
             cl = self.pop_set[i]                                # One classifier at a time
             if cl.match(state):                                 # Check for match
                 self.match_set.append( i )                      # If match - add classifier to match set
-                if cl.action not in match_set_phenotypes:
-                    match_set_phenotypes.append( cl.action )
+                if cl.action not in matchset_phenotypes:
+                    matchset_phenotypes.append( cl.action )
         cons.timer.stopTimeMatching()
-        if len( match_set_phenotypes ) >= cons.theta_mna:
+        if len( matchset_phenotypes ) >= cons.theta_mna:
             do_covering = False
         #-------------------------------------------------------
         # COVERING
         #-------------------------------------------------------
         while do_covering:
-            new_cl = Classifier(explore_iter, state, random.choice(list(set(cons.env.action_list) - set(match_set_phenotypes))))
+            new_cl = Classifier(explore_iter, state, random.choice( [ action for action in cons.env.action_list if action not in matchset_phenotypes ] ))
             new_cl.origin = 'covered'
             self.addClassifierToPopulation( new_cl, do_covering )
             self.covered_cl_counter += 1
             self.match_set.append( len(self.pop_set)-1 )        # Add covered classifier to match set
-            match_set_phenotypes.append( new_cl.action )
-            if len( match_set_phenotypes ) >= cons.theta_mna:
+            matchset_phenotypes.append( new_cl.action )
+            if len( matchset_phenotypes ) >= cons.theta_mna:
                 # if there is sufficient number of different phenotypes in match set, stop covering
                 self.deletion()
                 self.match_set = []
