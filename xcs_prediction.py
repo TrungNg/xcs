@@ -31,17 +31,14 @@ class Prediction:
             tiebreak_timestamp = {}
 
             for action in cons.env.format_data.action_list:
-                self.prediction[ action ] = None
+                self.prediction[ action ] = 0
                 denominator[ action ] = 0.0
                 tiebreak_numerosity[ action ] = 0
                 tiebreak_timestamp[ action ] = 0
 
             for ref in population.match_set:
                 cl = population.pop_set[ref]
-                if self.prediction[cl.action] == None:
-                    self.prediction[cl.action] = cl.prediction * cl.fitness
-                else:
-                    self.prediction[cl.action] += cl.prediction * cl.fitness# * cl.numerosity
+                self.prediction[cl.action] += cl.prediction * cl.fitness# * cl.numerosity
                 denominator[cl.action] += cl.fitness# * cl.numerosity
                 tiebreak_numerosity[cl.action] += cl.numerosity
                 tiebreak_timestamp[cl.action] += cl.init_timestamp
@@ -55,11 +52,11 @@ class Prediction:
             max_prediction = 0.0
             self.best_set = [] #Prediction is set up to handle best class ties for problems with more than 2 classes
             for action in cons.env.format_data.action_list:
-                if self.prediction[ action ] != None and self.prediction[ action ] >= max_prediction:
+                if tiebreak_numerosity[ action ] != 0 and self.prediction[ action ] >= max_prediction:
                     max_prediction = self.prediction[ action ]
 
             for action in cons.env.format_data.action_list:
-                if self.prediction[ action ] != None and self.prediction[ action ] == max_prediction: #Tie for best class
+                if tiebreak_numerosity[ action ] != 0 and self.prediction[ action ] == max_prediction: #Tie for best class
                     self.best_set.append( action )
             self.possible_actions = [ k for k,v in self.prediction.items() if v is not None ]
             self.possible_actions.sort()
