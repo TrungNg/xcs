@@ -393,12 +393,12 @@ class Classifier:
     def equals( self, cl ):
         """ Returns if the two classifiers are identical in condition and action. This works for discrete or continuous attributes or actions. """
         if cl.action == self.action and len( cl.specified_att_list ) == len( self.specified_att_list ): #Is action the same and are the same number of attributes specified - quick equality check first.
-            clRefs = sorted( cl.specified_att_list )
-            selfRefs = sorted( self.specified_att_list )
-            if clRefs == selfRefs:
+            cl_refs = sorted( cl.specified_att_list )
+            self_refs = sorted( self.specified_att_list )
+            if cl_refs == self_refs:
                 for i in range( len( cl.specified_att_list ) ):
-                    tempIndex = self.specified_att_list.index( cl.specified_att_list[i] )
-                    if cl.condition[i] == self.condition[tempIndex]:
+                    tmp_index = self.specified_att_list.index( cl.specified_att_list[i] )
+                    if cl.condition[i] == self.condition[tmp_index]:
                         pass
                     else:
                         return False

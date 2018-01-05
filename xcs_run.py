@@ -13,9 +13,9 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 #Import Required Modules------------------------------------
 from xcs_timer import Timer
 from xcs_config_parser import ConfigParser
-from xcs_environment_interactor import *
+from xcs_environment_interactor import EnvironmentInteractor
 from xcs_algorithm import XCS
-from xcs_constants import *
+from xcs_constants import cons
 #-----------------------------------------------------------
 
 helpstr = """Failed attempt to run XCS.  Please ensure that a configuration file giving all run parameters has been specified."""

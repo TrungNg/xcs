@@ -13,9 +13,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 #Import Required Modules-------------------------------
 from xcs_constants import *
 from xcs_classifierset import ClassifierSet
-from xcs_prediction import *
-from xcs_environment_interactor import *
-from xcs_logger import *
+from xcs_prediction import Prediction
+from xcs_logger import Logger
 import copy
 import random
 import math
@@ -167,7 +166,7 @@ class XCS:
 
     def doPopEvaluation(self):
         """ Performs a complete evaluation of the current rule population.  The population is unchanged throughout this evaluation. Works on both training and testing data. """
-        noMatch = 0                     # How often does the population fail to have a classifier that matches an instance in the data.
+        no_match = 0                     # How often does the population fail to have a classifier that matches an instance in the data.
         tie = 0                         # How often can the algorithm not make a decision between classes due to a tie.
         is_training_mode = False
         cons.env.resetInitialStateRef() # Go to the first instance in dataset
@@ -189,7 +188,7 @@ class XCS:
                 #-----------------------------------------------------------------------------
 
                 if action_selection == None:
-                    noMatch += 1
+                    no_match += 1
                 elif action_selection == 'Tie':
                     tie += 1
                 else: #Instances which failed to be covered are excluded from the accuracy calculation
