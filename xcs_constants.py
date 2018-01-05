@@ -19,9 +19,9 @@ class Constants:
         if self.online_data_generator == True:
             self.problem_type = par[ 'onlineProblem' ]
             sizes = par[ 'problemSizes' ].split( '.' )
-        self.problem_sizes = [ 0 ] * 3
-        for i in range( len( sizes ) ):
-            self.problem_sizes[ i ] = int( sizes[ i ] )
+            self.problem_sizes = [ 0 ] * 3
+            for i in range( len( sizes ) ):
+                self.problem_sizes[ i ] = int( sizes[ i ] )
         self.multiprocessing = True if (par['multiprocessing']) == 'True' else False
         self.train_file = par['trainFile']                                      #Saved as text
         self.test_file = par['testFile']                                        #Saved as text
