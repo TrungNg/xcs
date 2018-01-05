@@ -31,7 +31,7 @@ class Prediction:
             tiebreak_timestamp = {}
 
             for action in cons.env.format_data.action_list:
-                self.prediction[ action ] = 0
+                self.prediction[ action ] = 0.0
                 denominator[ action ] = 0.0
                 tiebreak_numerosity[ action ] = 0
                 tiebreak_timestamp[ action ] = 0
