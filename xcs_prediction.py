@@ -18,6 +18,7 @@ import random
 class Prediction:
     def __init__(self, population, is_testing = False):
         """ Constructs the voting array and determines the prediction decision. """
+        self.decision = None
         self.prediction = {}
         denominator = {}
         tiebreak_numerosity = {}
