@@ -92,6 +92,8 @@ class XCS:
             if ( self.iteration%cons.tracking_frequency ) == ( cons.tracking_frequency - 1 ) and self.iteration > 0:
                 self.population.runPopAveEval()
                 tracked_accuracy = sum( self.tracked_results )/float( self.exploit_iters ) #Accuracy over the last "tracking_frequency" number of iterations.
+                cons.mu = 0.08 / ( 1 + math.exp( -10 * ( 0.95 - tracked_accuracy ) ) ) + 0.01
+                cons.chi = 0.7 / ( 1 + math.exp( -10 * ( 0.95 - tracked_accuracy ) ) ) + 0.3
                 self.exploit_iters = 0
                 self.tracked_results  = [0] * cons.tracking_frequency
                 self.learn_track.write( self.population.getPopTrack(tracked_accuracy, self.iteration+1, cons.tracking_frequency ) ) #Report learning progress to standard out and tracking file.

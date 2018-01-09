@@ -3,22 +3,22 @@
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Major Run Parameters - Essential to be set correctly for a successful run of the algorithm
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-onlineProblem=multiplexer						# Define name of parameter as necessary for the online data generator (if offline data file is used, set to False) to work.
-problemSizes=6									# Define the sizes of the problem as the data generator (if used) to work.
+onlineProblem=Multiplexer						# Define name of parameter as necessary for the online data generator (if offline data file is used, set to False) to work.
+problemSizes=11									# Define the sizes of the problem as the data generator (if used) to work.
 ------------------------------------------------
 trainFile=Demo_Datasets/6Multiplexer_Data_Complete.txt		# Path/FileName of training dataset
 testFile=None									# Path/FileName of testing dataset.  If no testing data available or desired, put 'None'.
 outFileName=Local_Output/ExampleRun				# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
 ------------------------------------------------
 multiprocessing=False
-learningIterations=5000.10000					# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
-N=800											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
+learningIterations=10000.15000					# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
+N=1500											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
 p_spec=0.5										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Logistical Run Parameters
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-randomSeed=9000									# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
+randomSeed=900									# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
 labelInstanceID=InstanceID						# Label for the data column header containing instance ID's.  If included label not found, algorithm assumes that no instance ID's were included.
 labelClass=Class								# Label for the data column header containing the phenotype label. (Typically 'Class' for case/control datasets)
 labelMissingData=NA								# Label used for any missing data in the data set.
@@ -52,7 +52,7 @@ exploration=0.5									# Probability to select action by exploration.
 ###### Algorithm Heuristic Options
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 doSubsumption=1									# Activate Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
-selectionMethod=tournament						# Select GA parent selection strategy ('tournament' or 'roulette')
+selectionMethod=roulette						# Select GA parent selection strategy ('tournament' or 'roulette')
 theta_sel=0.5									# The fraction of the correct set to be included in tournament selection.
 crossoverMethod=twopoint						# option for type of crossover
 
