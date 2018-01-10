@@ -6,7 +6,7 @@
 onlineProblem=Multiplexer						# Define name of parameter as necessary for the online data generator (if offline data file is used, set to False) to work.
 problemSizes=11									# Define the sizes of the problem as the data generator (if used) to work.
 ------------------------------------------------
-trainFile=Demo_Datasets/6Multiplexer_Data_Complete.txt		# Path/FileName of training dataset
+trainFile=Demo_Datasets/11Multiplexer_Data_Complete.txt		# Path/FileName of training dataset
 testFile=None									# Path/FileName of testing dataset.  If no testing data available or desired, put 'None'.
 outFileName=Local_Output/ExampleRun				# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
 ------------------------------------------------
@@ -23,7 +23,7 @@ labelInstanceID=InstanceID						# Label for the data column header containing in
 labelClass=Class								# Label for the data column header containing the phenotype label. (Typically 'Class' for case/control datasets)
 labelMissingData=NA								# Label used for any missing data in the data set.
 discreteAttributeLimit=10						# The maximum number of attribute states allowed before an attribute or phenotype is considered to be continuous (Set this value >= the number of states for any discrete attribute or phenotype in their dataset).
-trackingFrequency=500							# Specifies the number of iterations before each estimated learning progress report by the algorithm ('0' = report progress every epoch, i.e. every pass through all instances in the training data).
+trackingFrequency=200							# Specifies the number of iterations before each estimated learning progress report by the algorithm ('0' = report progress every epoch, i.e. every pass through all instances in the training data).
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Learning Parameters - Generally just use default values.

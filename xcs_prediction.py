@@ -58,7 +58,7 @@ class Prediction:
             for action in cons.env.format_data.action_list:
                 if tiebreak_numerosity[ action ] != 0 and self.prediction[ action ] == max_prediction: #Tie for best class
                     self.best_set.append( action )
-            self.possible_actions = [ k for k,v in self.prediction.items() if v is not None ]
+            self.possible_actions = [ k for k,_ in self.prediction.items() if tiebreak_numerosity[ k ] > 0 ]
             self.possible_actions.sort()
             if random.random() >= cons.exploration or is_testing == True:
                 # select by exploitation
