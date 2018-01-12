@@ -372,8 +372,8 @@ class ClassifierSet:
             self.micro_size += 1
             cl2P.updateNumerosity(1)
         else:
-            self.addClassifierToPopulation(cl)
-            #self.subsumeClassifier2(cl); #Try to subsume in the match set.
+            #self.addClassifierToPopulation(cl)
+            self.subsumeClassifier2(cl); #Try to subsume in the match set.
 
 
     def subsumeClassifier2(self, cl):
