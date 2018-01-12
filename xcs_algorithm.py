@@ -97,8 +97,8 @@ class XCS:
                     acc_change_rate = ( tracked_accuracy - self.tracked_accuracy ) / ( 1 - tracked_accuracy )
                 else:
                     acc_change_rate = 1
-                cons.mu = 0.09 / ( 1 + math.exp( 5*acc_change_rate ) ) + 0.01
-                cons.chi = 1 / ( 1 + math.exp( 5*acc_change_rate ) ) + 0.4
+                cons.mu = 0.05 / ( 1 + math.exp( 5*acc_change_rate ) ) + 0.01
+                cons.chi = 0.8 / ( 1 + math.exp( 5*acc_change_rate ) ) + 0.4
                 self.tracked_accuracy = tracked_accuracy
                 self.exploit_iters = 0
                 self.tracked_results  = [0] * cons.tracking_frequency
