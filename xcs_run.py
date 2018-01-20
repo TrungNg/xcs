@@ -34,7 +34,7 @@ def getOptions( argv ):
     if 'problem' in opts:
         cons.environment_name = opts['problem']
     if 'N' in opts:
-        cons.N = opts['N']
+        cons.N = int( opts['N'] )
     return opts
 #-----------------------------------------------------------
 
