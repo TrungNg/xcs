@@ -16,6 +16,26 @@ from xcs_config_parser import ConfigParser
 from xcs_environment_interactor import EnvironmentInteractor
 from xcs_algorithm import XCS
 from xcs_constants import cons
+from sys import argv
+#-----------------------------------------------------------
+
+#Function to parse arguments--------------------------------
+def getOptions( argv ):
+    """ Get arguments by command line and assign them to Constant object. """
+    opts = {}  # Empty dictionary to store key-value pairs.
+    while argv:  # While there are arguments left to parse...
+        if argv[0][0] == '-':  # Found a "-name value" pair.
+            opts[argv[0][1:]] = argv[1]  # Add key and value to the dictionary.
+        argv = argv[1:]  # Reduce the argument list by copying it starting from index 1.
+
+    # Assign options to paramters
+    if 'seed' in opts:
+        cons.random_seed = int( opts['seed'] )
+    if 'problem' in opts:
+        cons.environment_name = opts['problem']
+    if 'N' in opts:
+        cons.N = opts['N']
+    return opts
 #-----------------------------------------------------------
 
 helpstr = """Failed attempt to run XCS.  Please ensure that a configuration file giving all run parameters has been specified."""
@@ -29,6 +49,7 @@ ConfigParser(configurationFile)
 #Initialize the 'Timer' module which tracks the run time of algorithm and it's different components.
 timer = Timer()
 cons.referenceTimer(timer)
+getOptions( argv )
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 env = EnvironmentInteractor()
