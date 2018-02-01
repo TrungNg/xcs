@@ -14,9 +14,9 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 from xcs_timer import Timer
 from xcs_config_parser import ConfigParser
 from xcs_environment_interactor import EnvironmentInteractor
-from xcs_algorithm import XCS
 from xcs_constants import cons
 from sys import argv
+import random
 #-----------------------------------------------------------
 
 #Function to parse arguments--------------------------------
@@ -51,10 +51,19 @@ timer = Timer()
 cons.referenceTimer(timer)
 getOptions( argv )
 
+#Set random seed if specified.-----------------------------------------------
+if cons.use_seed:
+    random.seed(cons.random_seed)
+else:
+    random.seed(None)
+
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 env = EnvironmentInteractor()
 cons.referenceEnv(env) #Passes the environment to 'Constants' (cons) so that it can be easily accessed from anywhere within the code.
 cons.parseIterations() #Identify the maximum number of learning iterations as well as evaluation checkpoints.
+
+#Import Required Modules------------------------------------
+from xcs_algorithm import XCS
 
 #Run the e-LCS algorithm.
 XCS()

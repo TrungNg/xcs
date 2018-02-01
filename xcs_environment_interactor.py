@@ -31,11 +31,6 @@ class EnvironmentInteractor:
         else:
             self.conversion = Conversion()
 
-        #Set random seed if specified.-----------------------------------------------
-        if cons.use_seed:
-            random.seed(cons.random_seed)
-        else:
-            random.seed(None)
         print("----------------------------------------------------------------------------")
         print("XCS Code Demo:")
         print("----------------------------------------------------------------------------")
