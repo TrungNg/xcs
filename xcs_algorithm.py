@@ -200,7 +200,7 @@ class XCS:
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # SUBSUMPTION - APPLIED TO MATCH SET - A heuristic for addition additional generalization pressure to XCS
         #-----------------------------------------------------------------------------------------------------------------------------------------
-        if cons.do_subsumption:
+        if cons.do_actionset_subsumption:
             cons.timer.startTimeSubsumption()
             self.population.doActionSetSubsumption()
             cons.timer.stopTimeSubsumption()
