@@ -90,5 +90,5 @@ def generate_complete_parity_countone(myfile,numb_parity,numb_countone):
         print("Data set generation: ERROR - Cannot generate all data instances due to computational limitations")
 
 
-#generate_complete_parity_countone('Demo_Datasets/3Parity_5CountOne_Data_Complete.txt',3,5)
+generate_complete_parity_countone('Demo_Datasets/11Majority_Data_Complete.txt',1,11)
 #generate_parity_countone_data('Demo_Datasets/3Parity_5CountOne_Data_20000.txt',3,5,20000)

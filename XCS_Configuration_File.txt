@@ -6,9 +6,9 @@
 onlineEnvironment=Woods1						# Choose Maze5 as the environment to learn
 trainFile=Demo_Datasets/6Multiplexer_Data_Complete.txt		# Path/FileName of training dataset
 testFile=None									# Path/FileName of testing dataset.  If no testing data available or desired, put 'None'.
-outFileName=Local_Output/ExampleRun							# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
-convertBinary=True									# Using binary condition
-learningIterations=1000.2500.3500.5000.7500				# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
+outFileName=Local_Output/ExampleRun				# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
+convertBinary=True								# Using binary condition
+learningIterations=1000.2500.3500.5000.7500		# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
 N=1600											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
 p_spec=0.6										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
 
@@ -50,13 +50,14 @@ exploration=0.3									# Probability to select action by exploration.
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Algorithm Heuristic Options
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-doSubsumption=0									# Activate Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
-selectionMethod=tournament						# Select GA parent selection strategy ('tournament' or 'roulette')
+doGASubsumption=0								# Activate GA Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
+doActionsetSubsumption=0						# Activate Action set Subsumption? (1 is True, 0 is False)
+selectionMethod=roulette						# Select GA parent selection strategy ('tournament' or 'roulette')
 theta_sel=0.5									# The fraction of the correct set to be included in tournament selection.
 crossoverMethod=twopoint						# option for type of crossover
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### PopulationReboot - An option to begin e-LCS learning from an existing, saved rule population. Note that the training data is re-shuffled during a reboot.
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-doPopulationReboot=1							# Start eLCS from an existing rule population? (1 is True, 0 is False).
+doPopulationReboot=0							# Start eLCS from an existing rule population? (1 is True, 0 is False).
 popRebootPath=ExampleRun_eLCS_50000				# Path/FileName of previously evolved rule population output file. Include file/pathname up to until 'RulePop.txt', as this is automatically included.

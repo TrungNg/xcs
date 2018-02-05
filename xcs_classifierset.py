@@ -440,7 +440,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         # SUBSUMPTION
         #-------------------------------------------------------
-        if cons.do_subsumption:
+        if cons.do_ga_subsumption:
             cons.timer.startTimeSubsumption()
 
             if len(cl1.specified_att_list) > 0:

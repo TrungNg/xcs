@@ -122,7 +122,7 @@ class XCS:
             # RUN THE GENETIC ALGORITHM - Discover new offspring rules from a selected pair of parents
             #-----------------------------------------------------------------------------------------------------------------------------------------
             self.population.runGA( explore_iter, self.population.prev_action_set, self.previous_state )
-            if cons.do_subsumption:
+            if cons.do_actionset_subsumption:
                 cons.timer.startTimeSubsumption()
                 self.population.doActionSetSubsumption( self.population.prev_action_set )
                 cons.timer.stopTimeSubsumption()
@@ -151,7 +151,7 @@ class XCS:
                 # reset steps counter
                 self.steps_to_goal = [ 0 for _ in range( cons.env.number_of_states ) ]
             cons.timer.stopTimeEvaluation()
-            if cons.do_subsumption:
+            if cons.do_actionset_subsumption:
                 #-------------------------------------------------------------
                 # ACTION SET SUBSUMPTION - if enabled
                 #-------------------------------------------------------------

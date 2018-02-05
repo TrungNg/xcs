@@ -58,14 +58,15 @@ class Constants:
         self.init_pred = float(par['init_pred'])                                #Saved as float
         self.init_err = float(par['init_err'])                                  #Saved as float
         self.init_fit = float(par['init_fit'])                                  #Saved as float
-        self.fitness_reduction = float(par['fitnessReduction'])                  #Saved as float
+        self.fitness_reduction = float(par['fitnessReduction'])                 #Saved as float
         self.exploration = float(par['exploration'])                            #Saved as float
 
         # Algorithm Heuristic Options -------------------------------------------------------------------------------
-        self.do_subsumption = bool(int(par['doSubsumption']))                    #Saved as Boolean
-        self.selection_method = par['selectionMethod']                           #Saved as text
+        self.do_ga_subsumption = bool(int(par['doGASubsumption']))              #Saved as Boolean
+        self.do_actionset_subsumption = bool(int(par['doActionsetSubsumption']))          #Saved as Boolean
+        self.selection_method = par['selectionMethod']                          #Saved as text
         self.theta_sel = float(par['theta_sel'])                                #Saved as float
-        self.crossover_method = par['crossoverMethod']                           #Saved as text
+        self.crossover_method = par['crossoverMethod']                          #Saved as text
 
         # PopulationReboot -------------------------------------------------------------------------------
         self.do_population_reboot = bool(int(par['doPopulationReboot']))          #Saved as Boolean
