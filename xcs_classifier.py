@@ -30,7 +30,7 @@ class Classifier:
         self.fitness = cons.init_fit        # Classifier fitness - initialized to a constant initial fitness value
         self.accuracy = 0.0                 # Classifier accuracy - Accuracy calculated using only instances in the dataset which this rule matched.
         self.numerosity = 1                 # The number of rule copies stored in the population.  (Indirectly stored as incremented numerosity)
-        self.avg_actionset_size = 0.0       # A parameter used in deletion which reflects the size of match sets within this rule has been included.
+        self.avg_actionset_size = 1.0       # A parameter used in deletion which reflects the size of match sets within this rule has been included.
         self.delete_vote = 0.0              # The current deletion weight for this classifier.
 
         #Experience Management ---------------------------------------------
