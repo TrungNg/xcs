@@ -565,14 +565,17 @@ class Classifier:
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
         payoff = reward
         if self.action_cnt >= 1.0 / cons.beta:
+            self.prediction = self.prediction + cons.beta * ( payoff - self.prediction )
+            self.error = self.error + cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
+            ###----------------------Emphsize on high error--------------------###
 #             if math.fabs( payoff - self.prediction ) > self.error:
 #                 self.error = math.fabs( payoff - self.prediction )
 #             else:
 #                 self.error = self.error + cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
-            self.prediction = self.prediction + cons.beta * ( payoff - self.prediction )
+            ###----------------------------------------------------------------###
         else:
-            self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
             self.prediction = ( self.prediction * ( self.action_cnt - 1 ) + payoff ) / self.action_cnt
+            self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
         if self.error <= cons.offset_epsilon:
             self.accuracy = 1
         else:
