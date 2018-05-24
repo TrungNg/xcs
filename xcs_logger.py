@@ -110,7 +110,7 @@ class Logger:
             attribute_list.append( "A" + str( i ) )
         for i in range( len( attribute_list ) ):
             rule_pop_out.write( str( attribute_list[i] )+"\t" )
-        rule_pop_out.write( "Phenotype\tPrediction\tError\tFitness\tNumerosity\tGACount\tSubsumerCount\tAveActionSetSize\tTimeStampGA\tInitTimeStamp\tSpecificity\tDeletionProb\tActionCount\n" )
+        rule_pop_out.write( "Phenotype\tPrediction\tError\tFitness\tNumerosity\tGACount\tAveActionSetSize\tTimeStampGA\tInitTimeStamp\tSpecificity\tDeletionProb\tActionCount\n" )
 
         #Write each classifier--------------------------------------------------------------------------------------------------------------------------------------
         for cl in pop.pop_set:

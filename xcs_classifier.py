@@ -39,7 +39,6 @@ class Classifier:
 
         #Classifier Accuracy Tracking --------------------------------------
         self.GA_count = 0
-        self.subsumer_count = 0
         #self.matchCount = 0             # Known in many LCS implementations as experience i.e. the total number of times this classifier was in a match set
         self.action_count = 0            # The total number of times this classifier was chosen in action set
 
@@ -108,13 +107,12 @@ class Classifier:
         self.fitness = float( classifier_list[numb_attributes+3] )
         self.numerosity = int( classifier_list[numb_attributes+4] )
         self.GA_count = float( classifier_list[numb_attributes+5] )
-        self.subsumer_count = float( classifier_list[numb_attributes+6] )
-        self.ave_action_set_size = float( classifier_list[numb_attributes+7] )
-        self.timestamp_GA = int( classifier_list[numb_attributes+8] )
-        self.init_timestamp = int( classifier_list[numb_attributes+9] )
+        self.ave_action_set_size = float( classifier_list[numb_attributes+6] )
+        self.timestamp_GA = int( classifier_list[numb_attributes+7] )
+        self.init_timestamp = int( classifier_list[numb_attributes+8] )
 
-        self.deletion_vote = float( classifier_list[numb_attributes+11] )
-        self.action_count = int( classifier_list[numb_attributes+12] )
+        self.deletion_vote = float( classifier_list[numb_attributes+10] )
+        self.action_count = int( classifier_list[numb_attributes+11] )
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -347,7 +345,6 @@ class Classifier:
         """ Returns if the classifier ( self ) subsumes cl """
         if cl.action == self.action:
             if self.isPossibleSubsumer() and self.isMoreGeneral( cl ):
-                self.subsumer_count += cl.numerosity
                 return True
         return False
 
@@ -497,7 +494,7 @@ class Classifier:
         specificity = len( self.condition ) / float( cons.env.number_of_attributes )
 
         classifier_string += str( self.action ) + "\t"
-        classifier_string += str( self.prediction )+"\t"+str( self.error )+"\t"+str( self.fitness )+"\t"+str( self.numerosity )+"\t"+str( self.GA_count )+"\t"+str( self.subsumer_count )+"\t"+str( self.ave_action_set_size )+"\t"+str( self.timestamp_GA )+"\t"+str( self.init_timestamp )+"\t"+str( specificity )+"\t"
+        classifier_string += str( self.prediction )+"\t"+str( self.error )+"\t"+str( self.fitness )+"\t"+str( self.numerosity )+"\t"+str( self.GA_count )+"\t"+str( self.ave_action_set_size )+"\t"+str( self.timestamp_GA )+"\t"+str( self.init_timestamp )+"\t"+str( specificity )+"\t"
         classifier_string += str( self.deletion_vote ) + "\t" + str( self.action_count ) + "\n"
 
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
