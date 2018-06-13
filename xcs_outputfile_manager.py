@@ -110,7 +110,7 @@ class OutputFileManager:
         headers = cons.env.format_data.train_headers
         for i in range(len(headers)):
             rule_pop_out.write(str(headers[i])+"\t")
-        rule_pop_out.write("Action\tPredict\tError\tFitness\tNumer\tGACount\tSubsumerCount\tActionSetSize\tTimeStampGA\tInitTimeStamp\tSpecificity\tDeletionProb\tActionCount\n")
+        rule_pop_out.write("Action\tPredict\tError\tFitness\tNumer\tGACount\tActionSetSize\tTimeStampGA\tInitTimeStamp\tSpecificity\tDeletionProb\tActionCount\n")
 
         #sort classifiers based on numerosity-----------------------------------------------------------------------------------------------------------------------
         sorted_pop = sorted(pop.pop_set, key=lambda x: x.numerosity, reverse=True)

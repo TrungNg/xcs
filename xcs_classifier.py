@@ -39,7 +39,6 @@ class Classifier:
 
         #Classifier Accuracy Tracking --------------------------------------
         self.ga_count = 0
-        self.subsumer_cnt = 0
         self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
@@ -136,13 +135,12 @@ class Classifier:
         self.fitness = float(classifier_list[numb_attributes+3])
         self.numerosity = int(classifier_list[numb_attributes+4])
         self.ga_count = float(classifier_list[numb_attributes+5])
-        self.subsumer_cnt = float(classifier_list[numb_attributes+6])
-        self.avg_actionset_size = float(classifier_list[numb_attributes+7])
-        self.ga_timestamp = int(classifier_list[numb_attributes+8])
-        self.init_timestamp = int(classifier_list[numb_attributes+9])
+        self.avg_actionset_size = float(classifier_list[numb_attributes+6])
+        self.ga_timestamp = int(classifier_list[numb_attributes+7])
+        self.init_timestamp = int(classifier_list[numb_attributes+8])
 
-        self.delete_vote = float(classifier_list[numb_attributes+11])
-        self.action_cnt = int(classifier_list[numb_attributes+12])
+        self.delete_vote = float(classifier_list[numb_attributes+10])
+        self.action_cnt = int(classifier_list[numb_attributes+11])
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -463,7 +461,6 @@ class Classifier:
         if cons.env.format_data.discrete_action:
             if cl.action == self.action:
                 if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
-                    self.subsumer_cnt += cl.numerosity
                     return True
             return False
         #-------------------------------------------------------
@@ -673,7 +670,7 @@ class Classifier:
             classifier_info += str(self.action[0])+';'+str(self.action[1])+"\t"
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         classifier_info += '{:.1f}'.format(self.prediction)+"\t"+'{:.2f}'.format(self.error)+"\t"+'{:.2f}'.format(self.fitness)+"\t"+str(self.numerosity)+"\t"+str(self.ga_count)+"\t"
-        classifier_info += str(self.subsumer_cnt)+"\t\t"+'{:.1f}'.format(self.avg_actionset_size)+"\t\t"+str(self.ga_timestamp)+"\t\t"+str(self.init_timestamp)+"\t\t"+'{:.2f}'.format(specificity)+"\t\t"
+        classifier_info += '{:.1f}'.format(self.avg_actionset_size)+"\t\t"+str(self.ga_timestamp)+"\t\t"+str(self.init_timestamp)+"\t\t"+'{:.2f}'.format(specificity)+"\t\t"
         classifier_info += '{:.1f}'.format(self.delete_vote)+"\t\t"+str(self.action_cnt)+"\n"
 
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
