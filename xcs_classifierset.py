@@ -126,7 +126,6 @@ class ClassifierSet:
                 self.match_set = []
                 do_covering = False
 
-
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
         for i in range(len(self.match_set)):
@@ -143,7 +142,6 @@ class ClassifierSet:
             else:
                 if float(selected_action) <= float(self.pop_set[ref].action[1]) and float(selected_action) >= float(self.pop_set[ref].action[0]):
                     self.action_set.append(ref)
-
 
     def makeEvalMatchSet(self, state):
         """ Constructs a match set for evaluation purposes which does not activate either covering or deletion. """
@@ -163,12 +161,10 @@ class ClassifierSet:
             self.deleteFromPopulation()
         cons.timer.stopTimeDeletion()
 
-
     def deleteFromPopulation(self):
         """ Deletes one classifier in the population.  The classifier that will be deleted is chosen by roulette wheel selection
         considering the deletion vote. Returns the macro-classifier which got decreased by one micro-classifier. """
         mean_fitness = self.getPopFitnessSum()/float(self.micro_size)
-
         #Calculate total wheel size------------------------------
         vote_sum = 0.0
         vote_list = []
@@ -178,7 +174,6 @@ class ClassifierSet:
             vote_list.append(vote)
         #--------------------------------------------------------
         choice_point = vote_sum * random.random() #Determine the choice point
-
         new_sum = 0.0
         for i in range(len(vote_list)):
             cl = self.pop_set[i]
@@ -192,27 +187,22 @@ class ClassifierSet:
                     self.deleteFromMatchSet(i)
                     self.deleteFromActionSet(i)
                 return
-
         print("ClassifierSet: No eligible rules found for deletion in deleteFromPopulation.")
         return
-
 
     def removeMacroClassifier(self, ref):
         """ Removes the specified (macro-) classifier from the population. """
         self.pop_set.pop(ref)
 
-
     def deleteFromMatchSet(self, cl_ref):
         """ Delete reference to classifier in population, contained in self.match_set."""
         if cl_ref in self.match_set:
             self.match_set.remove(cl_ref)
-
         #Update match set reference list--------
         for j in range(len(self.match_set)):
             ref = self.match_set[j]
             if ref > cl_ref:
                 self.match_set[j] -= 1
-
 
     def deleteFromActionSet(self, cl_ref):
         """ Delete reference to classifier in population, contained in self.action_set."""
@@ -336,7 +326,6 @@ class ClassifierSet:
 
         return selected_list
 
-
     def selectClassifierT(self):
         """  Selects parents using tournament selection according to the fitness of the classifiers. """
         selected_list = [None, None]
@@ -375,7 +364,6 @@ class ClassifierSet:
             #self.addClassifierToPopulation(cl)
             self.subsumeClassifier2(cl); #Try to subsume in the match set.
 
-
     def subsumeClassifier2(self, cl):
         """ Tries to subsume a classifier in the match set. If no subsumption is possible the classifier is simply added to the population considering
         the possibility that there exists an identical classifier. """
@@ -391,7 +379,6 @@ class ClassifierSet:
             return
 
         self.addClassifierToPopulation(cl) #If no subsumer was found, check for identical classifier, if not then add the classifier to the population
-
 
     def doActionSetSubsumption(self):
         """ Executes match set subsumption.  The match set subsumption looks for the most general subsumer classifier in the match set
@@ -430,7 +417,6 @@ class ClassifierSet:
             self.pop_set.append(cl)
         self.micro_size += 1
 
-
     def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2):
         """ Inserts both discovered classifiers and activates GA subsumption if turned on. Also checks for default rule (i.e. rule with completely general condition) and
         prevents such rules from being added to the population, as it offers no predictive value within XCS. """
@@ -454,7 +440,6 @@ class ClassifierSet:
                 self.addClassifierToPopulation(cl1) #False passed because this is not called for a covered rule.
             if len(cl2.specified_attributes) > 0:
                 self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
-
 
     def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
@@ -482,18 +467,15 @@ class ClassifierSet:
         """ Returns the average of the time stamps in the match set. """
         sum_cl = 0.0
         sum_numer = 0.0
-        for i in range(len(self.action_set)):
-            ref = self.action_set[i]
+        for ref in self.action_set:
             sum_cl += self.pop_set[ref].ga_timestamp * self.pop_set[ref].numerosity
             sum_numer += self.pop_set[ref].numerosity #numerosity sum of match set
         return sum_cl/float( sum_numer )
 
-
     def setIterStamps(self, iteration):
         """ Sets the time stamp of all classifiers in the set to the current time. The current time
         is the number of exploration steps executed so far.  """
-        for i in range(len(self.action_set)):
-            ref = self.action_set[i]
+        for ref in self.action_set:
             self.pop_set[ref].updateTimeStamp(iteration)
 
     #def setPredictionArray(self,newPredictionArray):
@@ -507,7 +489,6 @@ class ClassifierSet:
             sum_cl += self.pop_set[ref].fitness
         return sum_cl
 
-
     def getPopFitnessSum(self):
         """ Returns the sum of the fitnesses of all classifiers in the set. """
         sum_cl = 0.0
@@ -515,14 +496,12 @@ class ClassifierSet:
             sum_cl += cl.fitness
         return sum_cl
 
-
     def getIdenticalClassifier(self, new_cl):
         """ Looks for an identical classifier in the population. """
         for ref in self.match_set:
             if new_cl.equals(self.pop_set[ref]):
                 return self.pop_set[ref]
         return None
-
 
     def clearSets(self):
         """ Clears out references in the match and action sets for the next learning iteration. """
@@ -553,7 +532,6 @@ class ClassifierSet:
             action_range = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
             self.avg_action_range = (sum_rule_range / float(self.micro_size)) / float(action_range)
 
-
     def runAttGeneralitySum(self, is_eval_summary):
         """ Determine the population-wide frequency of attribute specification, and accuracy weighted specification.  Used in complete rule population evaluations. """
         if is_eval_summary:
@@ -567,7 +545,6 @@ class ClassifierSet:
                     self.attribute_spec_list[ref] += cl.numerosity
                     self.attribute_acc_list[ref] += cl.numerosity * cl.accuracy
 
-
     def getPopTrack(self, accuracy, iteration, tracking_frequency):
         """ Returns a formated output string to be printed to the Learn Track output file. """
         population_info = str(iteration)+ "\t" + str(len(self.pop_set)) + "\t" + str(self.micro_size) + "\t" + str(accuracy) + "\t" + str(self.mean_generality)  + "\t" + str(cons.timer.returnGlobalTimer())+ "\n"
@@ -575,9 +552,7 @@ class ClassifierSet:
             print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
         else: # continuous phenotype
             print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
-
         return population_info
-
 
     def parallelMatching( self, i ): #( ( indices, condition, state, id ) ):
         """ used when multiprocessing is enabled. """

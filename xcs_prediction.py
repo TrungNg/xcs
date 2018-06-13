@@ -64,10 +64,8 @@ class Prediction:
                 # select by exploitation
                 #---------------------------
                 self.is_exploit = True
-                if max_prediction == 0.0:
-                    self.decision = None
                 #-----------------------------------------------------------------------
-                elif len( self.best_set ) > 1: #Randomly choose between the best tied classes
+                if len( self.best_set ) > 1: #Randomly choose between the best tied classes
                     max_numerosity = 0
                     new_best_action = []
                     for action in self.best_set:
@@ -107,6 +105,8 @@ class Prediction:
         # CONTINUOUS PHENOTYPES - NOT SURE HOW TO ADJUST THIS PART FOR XCS?
         #-------------------------------------------------------
         else:
+            self.prediction = {}
+            denominator = {}
             if len(population.match_set) < 1:
                 print("empty matchSet")
                 self.decision = None
@@ -161,7 +161,7 @@ class Prediction:
 
     def getDecision(self):
         """ Returns prediction decision. """
-        if self.decision == None or self.decision == 'Tie':
+        if self.decision == 'Tie':
             if cons.env.format_data.discrete_action:
                 self.decision = random.choice( self.possible_actions )
             else:
