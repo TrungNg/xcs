@@ -10,7 +10,6 @@ Description:
 """
 
 #Import Required Modules-------------------------------
-import copy
 import math
 from multiprocessing import Pool, cpu_count
 

@@ -22,7 +22,7 @@ class Constants:
             self.problem_sizes = [ 0 ] * 3
             for i in range( len( sizes ) ):
                 self.problem_sizes[ i ] = int( sizes[ i ] )
-        self.multiprocessing = True if (par['multiprocessing']) == 'True' else False
+        self.multiprocessing = bool( int( par['multiprocessing'] ) )
         self.train_file = par['trainFile']                                      #Saved as text
         self.test_file = par['testFile']                                        #Saved as text
         self.original_out_file = str(par['outFileName'])                        #Saved as text

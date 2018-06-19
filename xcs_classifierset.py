@@ -13,7 +13,6 @@ Description:
 from xcs_constants import *
 from xcs_classifier import Classifier
 import random
-import copy
 #--------------------------------------------
 
 class ClassifierSet:
@@ -297,7 +296,7 @@ class ClassifierSet:
     def selectClassifierRW(self):
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for actionSet set or 'niche' selection.
-        set_list = copy.deepcopy(self.action_set)
+        set_list = self.action_set[:]
 
         if len(set_list) > 2:
             selected_list = [None, None]

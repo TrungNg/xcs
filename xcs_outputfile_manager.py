@@ -12,7 +12,6 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 #Import Required Modules--------------
 from xcs_constants import *
-import copy
 #-------------------------------------
 
 class OutputFileManager:

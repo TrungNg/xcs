@@ -93,8 +93,8 @@ class Classifier:
         """  Constructs an identical Classifier.  However, the experience of the copy is set to 0 and the numerosity
         is set to 1 since this is indeed a new individual in a population. Used by the genetic algorithm to generate
         offspring based on parent classifiers."""
-        self.specified_attributes = copy.deepcopy(old_cl.specified_attributes)
-        self.condition = copy.deepcopy(old_cl.condition)
+        self.specified_attributes = old_cl.specified_attributes[:]
+        self.condition = old_cl.condition[:]
         self.action = copy.deepcopy(old_cl.action)
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
@@ -180,8 +180,8 @@ class Classifier:
         #DEVITO: cl. is where less useful attribute are more likely to be specified
         """
         if cons.env.format_data.discrete_action: #Always crossover condition if the phenotype is discrete (if continuous phenotype, half the time phenotype crossover is performed instead)
-            self_specified_attributes = copy.deepcopy(self.specified_attributes)
-            cl_specified_attributes = copy.deepcopy(cl.specified_attributes)
+            self_specified_attributes = self.specified_attributes[:]
+            cl_specified_attributes = cl.specified_attributes[:]
             probability = 0.5  #Equal probability for attribute alleles to be exchanged.
 
             #Make list of attribute references appearing in at least one of the parents.-----------------------------
@@ -264,8 +264,8 @@ class Classifier:
                     #-------------------------------------------------------
                     else:
                         pass
-            tmp_list1 = copy.deepcopy(self_specified_attributes)
-            tmp_list2 = copy.deepcopy(cl.specified_attributes)
+            tmp_list1 = self_specified_attributes[:]
+            tmp_list2 = cl.specified_attributes[:]
             tmp_list1.sort()
             tmp_list2.sort()
             if changed and (tmp_list1 == tmp_list2):
@@ -298,8 +298,8 @@ class Classifier:
         else:
             points.append( second_point )
         if cons.env.format_data.discrete_action:
-            self_specified_attributes = copy.deepcopy(self.specified_attributes)
-            cl_specified_attributes = copy.deepcopy(cl.specified_attributes)
+            self_specified_attributes = self.specified_attributes[:]
+            cl_specified_attributes = cl.specified_attributes[:]
             for i in range( points[1] ):
                 if i >= points[0]:
                     if i in self_specified_attributes:
@@ -406,7 +406,7 @@ class Classifier:
         """ Mutate this rule's discrete phenotype. """
         changed = False
         if random.random() < cons.mu:
-            action_list = copy.deepcopy(cons.env.format_data.action_list)
+            action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
             new_action = random.sample(action_list,1)
             self.action = new_action[0]
