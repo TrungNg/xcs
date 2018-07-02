@@ -28,6 +28,7 @@ class Constants:
         self.original_out_file = str(par['outFileName'])                        #Saved as text
         self.out_file = str(par['outFileName'])+'_XCS'                          #Saved as text
         self.checkpoint_iter = par['learningIterations']                        #Saved as text
+        self.extra_estimation = bool( int( par['extraEstimationRun'] ) )
         self.N = int(par['N'])                                                  #Saved as integer
         self.p_spec = float(par['p_spec'])                                      #Saved as float
 
@@ -67,14 +68,14 @@ class Constants:
 
         # Algorithm Heuristic Options -------------------------------------------------------------------------------
         self.do_ga_subsumption = bool(int(par['doGASubsumption']))
-        self.do_actionset_subsumption = bool(int(par['doActionetSubsumption']))    #Saved as Boolean
+        self.do_actionset_subsumption = bool(int(par['doActionetSubsumption'])) #Saved as Boolean
         self.selection_method = par['selectionMethod']                          #Saved as text
         self.theta_sel = float(par['theta_sel'])                                #Saved as float
         self.crossover_method = par['crossoverMethod']                          #Saved as text
 
         # PopulationReboot -------------------------------------------------------------------------------
-        self.do_pop_reboot = bool(int(par['doPopulationReboot']))          #Saved as Boolean
-        self.pop_reboot_path = par['popRebootPath']                               #Saved as text
+        self.do_pop_reboot = bool(int(par['doPopulationReboot']))               #Saved as Boolean
+        self.pop_reboot_path = par['popRebootPath']                             #Saved as text
 
 
     def referenceTimer(self, timer):

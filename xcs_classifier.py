@@ -19,7 +19,7 @@ import math
 #--------------------------------------
 
 class Classifier:
-    def __init__(self,a=None,b=None,c=None):
+    def __init__(self,a=None,b=None,c=None,d=None):
         #Major Parameters --------------------------------------------------
         self.specified_attributes = []      # Attribute Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
         self.condition = []                 # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
@@ -42,9 +42,9 @@ class Classifier:
         self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
-            self.classifierCovering(a,b,c)
+            self.classifierCovering(a,b,c,d)
         elif isinstance(a,Classifier):
-            self.classifierCopy(a, b)
+            self.classifierCopy(a)
         elif isinstance(a,list) and b == None:
             self.rebootClassifier(a)
         else:
@@ -53,12 +53,13 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER CONSTRUCTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def classifierCovering(self, iteration, state, action):
+    def classifierCovering(self, iteration, state, action, set_size):
         """ Makes a new classifier when the covering mechanism is triggered.  The new classifier will match the current training instance.
         Covering will NOT produce a default rule (i.e. a rule with a completely general condition). """
         #Initialize new classifier parameters----------
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
+        self.avg_actionset_size = set_size
         data_info = cons.env.format_data
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE
@@ -89,19 +90,19 @@ class Classifier:
                     self.condition.append(self.buildMatch(att, state))
 
 
-    def classifierCopy(self, old_cl, iteration):
+    def classifierCopy(self, old_cl):
         """  Constructs an identical Classifier.  However, the experience of the copy is set to 0 and the numerosity
         is set to 1 since this is indeed a new individual in a population. Used by the genetic algorithm to generate
         offspring based on parent classifiers."""
         self.specified_attributes = copy.deepcopy(old_cl.specified_attributes)
         self.condition = copy.deepcopy(old_cl.condition)
         self.action = copy.deepcopy(old_cl.action)
-        self.ga_timestamp = iteration
-        self.init_timestamp = iteration
-        #self.avg_actionset_size = old_cl.avg_actionset_size
+        self.ga_timestamp = old_cl.ga_timestamp
+        self.init_timestamp = old_cl.ga_timestamp
+        self.avg_actionset_size = old_cl.avg_actionset_size
         self.prediction = old_cl.prediction
         self.error = old_cl.error
-        self.fitness = old_cl.fitness
+        self.fitness = old_cl.fitness/old_cl.numerosity
 
 
     def rebootClassifier(self, classifier_list):

@@ -156,7 +156,10 @@ class Prediction:
 
 
     def getHighestPredictionAction(self):
-        return self.best_set
+        if len( self.best_set ) > 1:
+            #System cannot find best action
+            return None
+        return self.best_set[0]
 
 
     def getDecision(self):

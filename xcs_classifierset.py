@@ -83,6 +83,7 @@ class ClassifierSet:
         do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
         matched_phenotype_list = []
         self.current_instance = state
+        matchset_size = 0
         #totalPrediction = 0.0
         #totalMatchSetPrediction = 0.0
         #-------------------------------------------------------
@@ -102,6 +103,7 @@ class ClassifierSet:
                 #totalPrediction += cl.prediction * cl.numerosity
                 if cl.match( state ):                             # Check for match
                     self.match_set.append( i )                  # If match - add classifier to match set
+                    matchset_size += cl.numerosity
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
                     #totalMatchSetPrediction += cl.prediction * cl.numerosity
@@ -114,7 +116,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         while do_covering:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
-            new_cl = Classifier(iteration, state, random.choice( missing_actions ))
+            new_cl = Classifier(iteration, state, random.choice( missing_actions ),matchset_size+1)
             self.addClassifierToPopulation( new_cl )
             self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
             matched_phenotype_list.append( new_cl.action )
@@ -122,7 +124,6 @@ class ClassifierSet:
             #totalPrediction += newCl.prediction * newCl.numerosity
             if len( matched_phenotype_list ) >= cons.theta_mna: #totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and
                 self.deletion()
-                self.match_set = []
                 do_covering = False
 
     def makeActionSet(self, selected_action):
@@ -242,7 +243,11 @@ class ClassifierSet:
             clP1 = selected_list[0]
             clP2 = selected_list[1]
         else:
-            print("ClassifierSet: Error - requested GA selection method not available.")
+            clP1_index = self.selectClassifierUsingTournamentSelection()
+            clP2_index = self.selectClassifierUsingTournamentSelection()
+            clP1 = self.pop_set[ clP1_index ]
+            clP2 = self.pop_set[ clP2_index ]
+            #print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
         clP1.updateGACount()
         clP2.updateGACount()
@@ -347,8 +352,49 @@ class ClassifierSet:
 
         return selected_list
 
+    def selectClassifierUsingTournamentSelection(self):
+        winnerSet = []
+        fitness = -1.0
+        select_tolerance = 0
 
-    #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+        # there must be at least one classifier in the set
+        # if classifierset==None or len(classifierset)==0:
+        #    print "in selectClassifierUsingTournamentSelection classifierset mustn't be None"
+
+        # only one classifier in set
+        if len(self.action_set) == 1:
+            return self.action_set[0]
+
+        # tournament with fixed size
+        # tournament selection with the tournament size approx. equal to tournamentSize setsum
+        while len(winnerSet) == 0:
+            for i in self.action_set:
+                # if his fitness is worse then do not bother
+                if len(winnerSet) == 0 or (fitness - select_tolerance) <= self.pop_set[i].fitness/self.pop_set[i].numerosity:
+                    for j in range(0, self.pop_set[i].numerosity):
+                        if random.random() < cons.theta_sel:
+                            if len(winnerSet) == 0:
+                                # the first one
+                                winnerSet.append(i)
+                                fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
+
+                            else:
+                                if (fitness + select_tolerance) > self.pop_set[i].fitness/self.pop_set[i].numerosity:
+                                    winnerSet.append(i)
+
+                                else:
+                                    winnerSet = []
+                                    winnerSet.append(i)
+                                    fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
+                            break
+
+            # print winnerSet
+        if len(winnerSet) > 1:
+            size = random.randint(0, len(winnerSet) - 1)
+            return winnerSet[size]
+        return winnerSet[0]
+
+        #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # SUBSUMPTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def subsumeClassifier(self, cl=None, cl1P=None, cl2P=None):
@@ -372,8 +418,8 @@ class ClassifierSet:
                 choices.append(ref)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
-            choice = int(random.random()*len(choices))
-            self.pop_set[choices[choice]].updateNumerosity(1)
+            choicep = int(random.random()*len(choices))
+            self.pop_set[choices[choicep]].updateNumerosity(1)
             self.micro_size += 1
             return
 
