@@ -234,8 +234,8 @@ class ClassifierSet:
             clP1 = selected_list[0]
             clP2 = selected_list[1]
         else:
-            clP1_index = self.selectClassifierUsingTournamentSelection()
-            clP2_index = self.selectClassifierUsingTournamentSelection()
+            clP1_index = self.selectClassifierUsingIqbalTournamentSel()
+            clP2_index = self.selectClassifierUsingIqbalTournamentSel()
             clP1 = self.pop_set[ clP1_index ]
             clP2 = self.pop_set[ clP2_index ]
             #print("ClassifierSet: Error - requested GA selection method not available.")
@@ -343,14 +343,14 @@ class ClassifierSet:
 
         return selected_list
 
-    def selectClassifierUsingTournamentSelection(self):
+    def selectClassifierUsingIqbalTournamentSel(self):
         winnerSet = []
         fitness = -1.0
         select_tolerance = 0
 
         # there must be at least one classifier in the set
         # if classifierset==None or len(classifierset)==0:
-        #    print "in selectClassifierUsingTournamentSelection classifierset mustn't be None"
+        #    print "in selectClassifierUsingIqbalTournamentSel classifierset mustn't be None"
 
         # only one classifier in set
         if len(self.action_set) == 1:
@@ -484,9 +484,6 @@ class ClassifierSet:
             action_set_numer += self.pop_set[ref].numerosity
         accuracy_sum = 0.0
         for ref in self.action_set:
-            #self.pop_set[ref].updateExperience()
-            #self.pop_set[ref].updateMatchSetSize(matchSetNumerosity)
-            #if ref in self.action_set:
             self.pop_set[ref].updateActionExp()
             self.pop_set[ref].updateActionSetSize( action_set_numer )
             self.pop_set[ref].updateXCSParameters( reward )
@@ -584,10 +581,10 @@ class ClassifierSet:
     def getPopTrack(self, accuracy, iteration, tracking_frequency):
         """ Returns a formated output string to be printed to the Learn Track output file. """
         population_info = str(iteration)+ "\t" + str(len(self.pop_set)) + "\t" + str(self.micro_size) + "\t" + str(accuracy) + "\t" + str(self.mean_generality)  + "\t" + str(cons.timer.returnGlobalTimer())+ "\n"
-        if cons.env.format_data.discrete_action: #discrete phenotype
-            print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
-        else: # continuous phenotype
-            print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
+        # if cons.env.format_data.discrete_action: #discrete phenotype
+        #     print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
+        # else: # continuous phenotype
+        #     print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
         return population_info
 
     def parallelMatching( self, i ): #( ( indices, condition, state, id ) ):
