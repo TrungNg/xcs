@@ -12,7 +12,7 @@ outFileName=Local_Output/ExampleRun				# Path/NewName for new algorithm output f
 ------------------------------------------------
 multiprocessing=0
 learningIterations=1000000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
-extraEstimationRun=1							# Run extra estimation of accuracy of current system, used when exploration->1.
+extraEstimationRun=0							# Run extra estimation of accuracy of current system, used when exploration->1.
 N=5000											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
 p_spec=0.5										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
 
@@ -47,7 +47,7 @@ init_pred=10									# The initial prediction payoff
 init_err=0.0									# The initial prediction error
 init_fit=10.0									# The initial fitness for a new classifier. (typically very small, approaching but not equal to zero)
 fitnessReduction=0.1							# Initial fitness reduction in GA offspring rules.
-exploration=1									# Probability to select action by exploration.
+exploration=0.5									# Probability to select action by exploration.
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Algorithm Heuristic Options
