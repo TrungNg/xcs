@@ -83,9 +83,6 @@ class ClassifierSet:
         do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
         matched_phenotype_list = []
         self.current_instance = state
-        matchset_size = 0
-        #totalPrediction = 0.0
-        #totalMatchSetPrediction = 0.0
         #-------------------------------------------------------
         # MATCHING
         #-------------------------------------------------------
@@ -100,29 +97,23 @@ class ClassifierSet:
         else:
             for i in range( len( self.pop_set ) ):              # Go through the population
                 cl = self.pop_set[i]                            # One classifier at a time
-                #totalPrediction += cl.prediction * cl.numerosity
                 if cl.match( state ):                             # Check for match
                     self.match_set.append( i )                  # If match - add classifier to match set
-                    matchset_size += cl.numerosity
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
-                    #totalMatchSetPrediction += cl.prediction * cl.numerosity
         cons.timer.stopTimeMatching()
-        #if totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and totalPrediction > 0:
-        if len( matched_phenotype_list ) >= cons.theta_mna:# and ( totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and totalPrediction > 0 ):
+        if len( matched_phenotype_list ) >= cons.theta_mna:
             do_covering = False
         #-------------------------------------------------------
         # COVERING
         #-------------------------------------------------------
         while do_covering:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
-            new_cl = Classifier(iteration, state, random.choice( missing_actions ),matchset_size+1)
+            new_cl = Classifier(iteration, state, random.choice( missing_actions ))
             self.addClassifierToPopulation( new_cl )
             self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
             matched_phenotype_list.append( new_cl.action )
-            #totalMatchSetPrediction += newCl.prediction * newCl.numerosity
-            #totalPrediction += newCl.prediction * newCl.numerosity
-            if len( matched_phenotype_list ) >= cons.theta_mna: #totalMatchSetPrediction * self.micro_size >= cons.phi * totalPrediction and
+            if len( matched_phenotype_list ) >= cons.theta_mna:
                 self.deletion()
                 do_covering = False
 
