@@ -81,9 +81,7 @@ class XCS:
             # -------------------------------------------------------
             state_action = cons.env.getTrainInstance()
 
-            self.is_explore = False
             if random.random() < cons.exploration or self.tracking_iter == 0:
-                self.is_explore = True
                 self.runIteration( state_action )
             else:
                 self.runExploit( state_action )
@@ -103,16 +101,16 @@ class XCS:
                 else:
                     tracked_accuracy = sum( self.tracked_results )/float( len( self.tracked_results ) ) #Accuracy over the last "tracking_frequency" number of iterations.
                     self.tracked_results = []
-                self.learn_track.write( self.population.getPopTrack( tracked_accuracy, self.iteration+1, cons.tracking_frequency ) ) #Report learning progress to standard out and tracking file.
+                self.learn_track.write( self.population.getPopTrack( tracked_accuracy, self.iteration, cons.tracking_frequency ) ) #Report learning progress to standard out and tracking file.
             cons.timer.stopTimeEvaluation()
 
             #-------------------------------------------------------
             # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION - strategy different for discrete vs continuous phenotypes
             #-------------------------------------------------------
-            if (self.iteration + 1) in cons.iter_checkpoints:
+            if self.iteration in cons.iter_checkpoints:
                 cons.timer.startTimeEvaluation()
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-                print("Running Population Evaluation after " + str(self.iteration + 1)+ " iterations.")
+                print("Running Population Evaluation after " + str(self.iteration)+ " iterations.")
 
                 self.population.runPopAveEval()
                 self.population.runAttGeneralitySum(True)
@@ -137,16 +135,12 @@ class XCS:
                 cons.timer.returnGlobalTimer()
 
                 #Write output files----------------------------------------------------------------------------------------------------------
-                OutputFileManager().writePopStats(cons.out_file, train_eval, test_eval, self.iteration + 1, self.population, self.tracked_results)
-                OutputFileManager().writePop(cons.out_file, self.iteration + 1, self.population)
+                OutputFileManager().writePopStats(cons.out_file, train_eval, test_eval, self.iteration, self.population, self.tracked_results)
+                OutputFileManager().writePop(cons.out_file, self.iteration, self.population)
                 #----------------------------------------------------------------------------------------------------------------------------
 
                 print("Continue Learning...")
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-            #-------------------------------------------------------
-            # ADJUST MAJOR VALUES FOR NEXT ITERATION
-            #-------------------------------------------------------
-            self.iteration += self.is_explore       # Increment current learning iteration
         if cons.multiprocessing:
             self.pool.close()
         # Once XCS has reached the last learning iteration, close the tracking file
@@ -186,7 +180,7 @@ class XCS:
         #-----------------------------------------------------------------------------------------------------------------------------------------
         cons.timer.startTimeEvaluation()
         prediction = Prediction( self.population )
-        selected_action = prediction.decide( self.is_explore )
+        selected_action = prediction.decide( True )
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE PREDICTION
         #-------------------------------------------------------
@@ -219,7 +213,8 @@ class XCS:
         # SELECT RULES FOR DELETION - This is done whenever there are more rules in the population than 'N', the maximum population size.
         #-----------------------------------------------------------------------------------------------------------------------------------------
         self.population.clearSets() #Clears the match and action sets for the next learning iteration
-        self.tracking_iter += self.is_explore
+        self.tracking_iter += 1
+        self.iteration += 1       # Increment current learning iteration
 
 
     def doPopEvaluation(self, is_train):
