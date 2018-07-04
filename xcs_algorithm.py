@@ -72,12 +72,11 @@ class XCS:
         print("Maximum Iterations: " +str(cons.stopping_iterations))
         print("Beginning XCS learning iterations.")
         print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-        explorer = 0
+        explorer = 1
         #-------------------------------------------------------
         # MAJOR LEARNING LOOP
         #-------------------------------------------------------
         while self.iteration < cons.stopping_iterations:
-            explorer = 1 - explorer
             # -------------------------------------------------------
             # GET NEW INSTANCE AND RUN A LEARNING ITERATION
             # -------------------------------------------------------
@@ -144,6 +143,9 @@ class XCS:
 
                 print("Continue Learning...")
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
+            # Switch between explore and exploit
+            if cons.exploration == 0.5:
+                explorer = 1 - explorer
         if cons.multiprocessing:
             self.pool.close()
         # Once XCS has reached the last learning iteration, close the tracking file
@@ -186,9 +188,9 @@ class XCS:
         if selected_action == state_action[1]:
             reward = 1000
         if cons.extra_estimation:
-            self.tracking_iter += 1
             if state_action[1] == prediction.decide( False ):
                 self.tracked_results[ self.tracking_iter ] = 1
+            self.tracking_iter += 1
         cons.timer.stopTimeEvaluation()
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # FORM AN ACTION SET

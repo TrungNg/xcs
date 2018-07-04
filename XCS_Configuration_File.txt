@@ -47,7 +47,7 @@ init_pred=10									# The initial prediction payoff
 init_err=0.0									# The initial prediction error
 init_fit=10.0									# The initial fitness for a new classifier. (typically very small, approaching but not equal to zero)
 fitnessReduction=0.1							# Initial fitness reduction in GA offspring rules.
-exploration=0.5									# Probability to select action by exploration.
+exploration=0.5									# Probability to select action by exploration (only support 0.5 or 1 for now).
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Algorithm Heuristic Options
