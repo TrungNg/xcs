@@ -82,6 +82,7 @@ class ClassifierSet:
         #Initial values
         do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
         matched_phenotype_list = []
+        set_size = 0
         self.current_instance = state
         #-------------------------------------------------------
         # MATCHING
@@ -99,6 +100,7 @@ class ClassifierSet:
                 cl = self.pop_set[i]                            # One classifier at a time
                 if cl.match( state ):                             # Check for match
                     self.match_set.append( i )                  # If match - add classifier to match set
+                    set_size += cl.numerosity
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
         cons.timer.stopTimeMatching()
@@ -109,13 +111,19 @@ class ClassifierSet:
         #-------------------------------------------------------
         while do_covering:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
-            new_cl = Classifier(iteration, state, random.choice( missing_actions ))
+            new_cl = Classifier(iteration, state, random.choice( missing_actions ),set_size+1)
+            set_size += 1
             self.addClassifierToPopulation( new_cl )
             self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
             matched_phenotype_list.append( new_cl.action )
             if len( matched_phenotype_list ) >= cons.theta_mna:
                 self.deletion()
-                do_covering = False
+                matched_phenotype_list = []
+                for i in self.match_set:
+                    if self.pop_set[i].action not in matched_phenotype_list:
+                        matched_phenotype_list.append(self.pop_set[i].action)
+                if len(matched_phenotype_list) >= cons.theta_mna:
+                    do_covering = False
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """

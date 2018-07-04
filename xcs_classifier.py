@@ -19,7 +19,7 @@ import math
 #--------------------------------------
 
 class Classifier:
-    def __init__(self,a=None,b=None,c=None):
+    def __init__(self,a=None,b=None,c=None,d=None):
         #Major Parameters --------------------------------------------------
         self.specified_attributes = []      # Attribute Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
         self.condition = []                 # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
@@ -42,7 +42,7 @@ class Classifier:
         self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
-            self.classifierCovering(a,b,c)
+            self.classifierCovering(a,b,c,d)
         elif isinstance(a,Classifier):
             self.classifierCopy(a)
         elif isinstance(a,list) and b == None:
@@ -53,12 +53,13 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER CONSTRUCTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def classifierCovering(self, iteration, state, action):
+    def classifierCovering(self, iteration, state, action, set_size):
         """ Makes a new classifier when the covering mechanism is triggered.  The new classifier will match the current training instance.
         Covering will NOT produce a default rule (i.e. a rule with a completely general condition). """
         #Initialize new classifier parameters----------
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
+        self.avg_actionset_size = set_size
         data_info = cons.env.format_data
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE
