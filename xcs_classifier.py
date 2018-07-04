@@ -19,7 +19,7 @@ import math
 #--------------------------------------
 
 class Classifier:
-    def __init__(self,a=None,b=None,c=None,d=None):
+    def __init__(self,a=None,b=None,c=None):
         #Major Parameters --------------------------------------------------
         self.specified_attributes = []      # Attribute Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
         self.condition = []                 # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
@@ -42,7 +42,7 @@ class Classifier:
         self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
-            self.classifierCovering(a,b,c,d)
+            self.classifierCovering(a,b,c)
         elif isinstance(a,Classifier):
             self.classifierCopy(a)
         elif isinstance(a,list) and b == None:
@@ -53,13 +53,12 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER CONSTRUCTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def classifierCovering(self, iteration, state, action, set_size):
+    def classifierCovering(self, iteration, state, action):
         """ Makes a new classifier when the covering mechanism is triggered.  The new classifier will match the current training instance.
         Covering will NOT produce a default rule (i.e. a rule with a completely general condition). """
         #Initialize new classifier parameters----------
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
-        self.avg_actionset_size = set_size
         data_info = cons.env.format_data
         #-------------------------------------------------------
         # DISCRETE PHENOTYPE
@@ -83,11 +82,11 @@ class Classifier:
         #-------------------------------------------------------
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
-        while len(self.specified_attributes) < 1:
+        while len( self.specified_attributes ) < 1:
             for att in range(len(state)):
                 if random.random() < cons.p_spec and state[att] != cons.missing_label:
                     self.specified_attributes.append(att)
-                    self.condition.append(self.buildMatch(att, state))
+                    self.condition.append( self.buildMatch(att, state) )
 
 
     def classifierCopy(self, old_cl):
@@ -102,7 +101,7 @@ class Classifier:
         self.avg_actionset_size = old_cl.avg_actionset_size
         self.prediction = old_cl.prediction
         self.error = old_cl.error
-        self.fitness = old_cl.fitness/old_cl.numerosity
+        self.fitness = old_cl.fitness
 
 
     def rebootClassifier(self, classifier_list):
