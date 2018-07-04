@@ -108,7 +108,7 @@ class XCS:
             #-------------------------------------------------------
             # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION - strategy different for discrete vs continuous phenotypes
             #-------------------------------------------------------
-            if self.iteration in cons.iter_checkpoints:
+            if ( self.iteration in cons.iter_checkpoints ) and explorer == 1:
                 cons.timer.startTimeEvaluation()
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 print("Running Population Evaluation after " + str(self.iteration)+ " iterations.")
