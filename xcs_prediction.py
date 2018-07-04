@@ -18,7 +18,7 @@ from xcs_constants import *
 
 #-------------------------------------
 class Prediction:
-    def __init__(self, population, is_testing = False):
+    def __init__(self, population):
         """ Constructs the voting array and determines the prediction decision. """
         self.decision = None
         self.prediction = {}
@@ -73,9 +73,9 @@ class Prediction:
     def getPredictedPayoff(self):
         return self.prediction[ self.decision ]
 
-    def decide(self, explore=True):
+    def decide(self, exploring=True):
         """ Returns prediction decision. """
-        if explore:
+        if exploring:
             self.decision = random.choice( self.possible_actions )
         elif len( self.best_set ) == 1:
             self.decision = self.best_set[0]
