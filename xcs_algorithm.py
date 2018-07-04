@@ -57,6 +57,7 @@ class XCS:
             self.iteration = 0
             if cons.extra_estimation:
                 self.tracked_results = [0] * cons.tracking_frequency
+                self.tracking_iter = 0
             else:
                 self.tracked_results = []
 
@@ -71,20 +72,22 @@ class XCS:
         print("Maximum Iterations: " +str(cons.stopping_iterations))
         print("Beginning XCS learning iterations.")
         print("------------------------------------------------------------------------------------------------------------------------------------------------------")
-        self.tracking_iter = 0
+        explorer = 0
         #-------------------------------------------------------
         # MAJOR LEARNING LOOP
         #-------------------------------------------------------
         while self.iteration < cons.stopping_iterations:
+            explorer = 1 - explorer
             # -------------------------------------------------------
             # GET NEW INSTANCE AND RUN A LEARNING ITERATION
             # -------------------------------------------------------
             state_action = cons.env.getTrainInstance()
 
-            if random.random() < cons.exploration or self.tracking_iter == 0:
+            if explorer == 1:
                 self.runIteration( state_action )
             else:
                 self.runExploit( state_action )
+            self.iteration += explorer       # Increment current learning iteration
             #-------------------------------------------------------------------------------------------------------------------------------
             # EVALUATIONS OF ALGORITHM
             #-------------------------------------------------------------------------------------------------------------------------------
@@ -92,12 +95,12 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
-            if self.tracking_iter == cons.tracking_frequency:
-                self.tracking_iter = 0
+            if self.iteration % cons.tracking_frequency == 0 and explorer == 1:
                 self.population.runPopAveEval()
                 if cons.extra_estimation:
                     tracked_accuracy = sum( self.tracked_results )/float( cons.tracking_frequency )
                     self.tracked_results = [0] * cons.tracking_frequency
+                    self.tracking_iter = 0
                 else:
                     tracked_accuracy = sum( self.tracked_results )/float( len( self.tracked_results ) ) #Accuracy over the last "tracking_frequency" number of iterations.
                     self.tracked_results = []
@@ -107,7 +110,7 @@ class XCS:
             #-------------------------------------------------------
             # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION - strategy different for discrete vs continuous phenotypes
             #-------------------------------------------------------
-            if self.iteration in cons.iter_checkpoints:
+            if ( self.iteration in cons.iter_checkpoints ) and explorer == 1:
                 cons.timer.startTimeEvaluation()
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 print("Running Population Evaluation after " + str(self.iteration)+ " iterations.")
@@ -152,8 +155,6 @@ class XCS:
         """ Run an exploit iteration. """
         """ Run an explore learning iteration. """
         self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
-        if self.population.match_set == []:
-            return
 
         cons.timer.startTimeEvaluation()
         prediction = Prediction( self.population )
@@ -173,8 +174,6 @@ class XCS:
         # FORM A MATCH SET - includes covering
         #-----------------------------------------------------------------------------------------------------------------------------------------
         self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
-        if self.population.match_set == []:
-            return
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # MAKE A PREDICTION - utilized here for tracking estimated learning progress.  Typically used in the explore phase of many LCS algorithms.
         #-----------------------------------------------------------------------------------------------------------------------------------------
@@ -187,6 +186,7 @@ class XCS:
         if selected_action == state_action[1]:
             reward = 1000
         if cons.extra_estimation:
+            self.tracking_iter += 1
             if state_action[1] == prediction.decide( False ):
                 self.tracked_results[ self.tracking_iter ] = 1
         cons.timer.stopTimeEvaluation()
@@ -213,8 +213,6 @@ class XCS:
         # SELECT RULES FOR DELETION - This is done whenever there are more rules in the population than 'N', the maximum population size.
         #-----------------------------------------------------------------------------------------------------------------------------------------
         self.population.clearSets() #Clears the match and action sets for the next learning iteration
-        self.tracking_iter += 1
-        self.iteration += 1       # Increment current learning iteration
 
 
     def doPopEvaluation(self, is_train):
