@@ -94,7 +94,7 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
-            if self.iteration % cons.tracking_frequency == 0 and explorer == 1:
+            if self.iteration % cons.tracking_frequency == 0 and explorer == 0:
                 self.population.runPopAveEval()
                 if cons.extra_estimation:
                     tracked_accuracy = sum( self.tracked_results )/float( cons.tracking_frequency )
@@ -109,7 +109,7 @@ class XCS:
             #-------------------------------------------------------
             # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION - strategy different for discrete vs continuous phenotypes
             #-------------------------------------------------------
-            if ( self.iteration in cons.iter_checkpoints ) and explorer == 1:
+            if ( self.iteration in cons.iter_checkpoints ) and explorer == 0:
                 cons.timer.startTimeEvaluation()
                 print("------------------------------------------------------------------------------------------------------------------------------------------------------")
                 print("Running Population Evaluation after " + str(self.iteration)+ " iterations.")
