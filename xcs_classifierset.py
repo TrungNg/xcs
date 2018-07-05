@@ -126,18 +126,8 @@ class ClassifierSet:
         """ Constructs a correct set out of the given match set. """
         for i in range(len(self.match_set)):
             ref = self.match_set[i]
-            #-------------------------------------------------------
-            # DISCRETE PHENOTYPE
-            #-------------------------------------------------------
-            if cons.env.format_data.discrete_action:
-                if self.pop_set[ref].action == selected_action:
-                    self.action_set.append(ref)
-            #-------------------------------------------------------
-            # CONTINUOUS PHENOTYPE
-            #-------------------------------------------------------
-            else:
-                if float(selected_action) <= float(self.pop_set[ref].action[1]) and float(selected_action) >= float(self.pop_set[ref].action[0]):
-                    self.action_set.append(ref)
+            if self.pop_set[ref].action == selected_action:
+                self.action_set.append(ref)
 
     def makeEvalMatchSet(self, state):
         """ Constructs a match set for evaluation purposes which does not activate either covering or deletion. """
@@ -560,16 +550,6 @@ class ClassifierSet:
         else:
             self.mean_generality = generality_sum / float(self.micro_size * cons.env.format_data.numb_attributes)
 
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE
-        #-------------------------------------------------------
-        if not cons.env.format_data.discrete_action:
-            sum_rule_range = 0
-            for cl in self.pop_set:
-                sum_rule_range += (cl.action[1] - cl.action[0])*cl.numerosity
-            action_range = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
-            self.avg_action_range = (sum_rule_range / float(self.micro_size)) / float(action_range)
-
     def runAttGeneralitySum(self, is_eval_summary):
         """ Determine the population-wide frequency of attribute specification, and accuracy weighted specification.  Used in complete rule population evaluations. """
         if is_eval_summary:
@@ -586,10 +566,7 @@ class ClassifierSet:
     def getPopTrack(self, accuracy, iteration, tracking_frequency):
         """ Returns a formated output string to be printed to the Learn Track output file. """
         population_info = str(iteration)+ "\t" + str(len(self.pop_set)) + "\t" + str(self.micro_size) + "\t" + str(accuracy) + "\t" + str(self.mean_generality)  + "\t" + str(cons.timer.returnGlobalTimer())+ "\n"
-        # if cons.env.format_data.discrete_action: #discrete phenotype
-        #     print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
-        # else: # continuous phenotype
-        #     print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
+        # print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality)  + "\t Time: " + str(cons.timer.returnGlobalTimer())))
         return population_info
 
     def parallelMatching( self, i ): #( ( indices, condition, state, id ) ):

@@ -59,33 +59,18 @@ class Classifier:
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
         data_info = cons.env.format_data
-        #-------------------------------------------------------
-        # DISCRETE PHENOTYPE
-        #-------------------------------------------------------
-        if data_info.discrete_action:
-            if action != None:
-                self.action = action
-            else:
-                self.action = random.choice(cons.env.format_data.action_list)
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE
-        #-------------------------------------------------------
+        if action != None:
+            self.action = action
         else:
-            action_range = data_info.action_list[1] - data_info.action_list[0]
-            range_radius = random.randint(25,75)*0.01*action_range / 2.0 #Continuous initialization domain radius.
-            if action == None:
-                action = data_info.action_list[0] + range_radius + random.random() * ( action_range - 2 * range_radius )
-            low = float(action) - range_radius
-            high = float(action) + range_radius
-            self.action = [low,high] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
+            self.action = random.choice( cons.env.format_data.action_list )
         #-------------------------------------------------------
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
         while len( self.specified_attributes ) < 1:
             for att in range(len(state)):
                 if random.random() < cons.p_spec and state[att] != cons.missing_label:
-                    self.specified_attributes.append(att)
-                    self.condition.append( self.buildMatch(att, state) )
+                    self.specified_attributes.append( att )
+                    self.condition.append( state[att] )
 
 
     def classifierCopy(self, old_cl):
@@ -116,19 +101,7 @@ class Classifier:
                 else:
                     self.condition.append(classifier_list[att])
                     self.specified_attributes.append(att)
-        #-------------------------------------------------------
-        # DISCRETE PHENOTYPE
-        #-------------------------------------------------------
-        if cons.env.format_data.discrete_action:
-            self.action = str(classifier_list[numb_attributes])
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE
-        #-------------------------------------------------------
-        else:
-            self.action = classifier_list[numb_attributes].split(';')
-            for i in range(2):
-                self.action[i] = float(self.action[i])
-
+        self.action = str(classifier_list[numb_attributes])
         self.prediction = float(classifier_list[numb_attributes+1])
         self.error = float(classifier_list[numb_attributes+2])
         self.fitness = float(classifier_list[numb_attributes+3])
@@ -137,149 +110,75 @@ class Classifier:
         self.avg_actionset_size = float(classifier_list[numb_attributes+6])
         self.ga_timestamp = int(classifier_list[numb_attributes+7])
         self.init_timestamp = int(classifier_list[numb_attributes+8])
-
         self.delete_vote = float(classifier_list[numb_attributes+10])
         self.action_cnt = int(classifier_list[numb_attributes+11])
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # MATCHING
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def match(self, state):
         """ Returns if the classifier matches in the current situation. """
-        for i in range(len(self.condition)):
-            attribute_info = cons.env.format_data.attribute_info[self.specified_attributes[i]]
-            #-------------------------------------------------------
-            # CONTINUOUS ATTRIBUTE
-            #-------------------------------------------------------
-            if attribute_info[0]:
-                state_val = state[self.specified_attributes[i]]
-                if self.condition[i][0] < state_val < self.condition[i][1] or state_val == cons.missing_label:
-                    pass
-                else:
-                    return False
-            #-------------------------------------------------------
-            # DISCRETE ATTRIBUTE
-            #-------------------------------------------------------
+        for i in range( len(self.condition) ):
+            state_val = state[ self.specified_attributes[i] ]
+            if state_val == self.condition[i] or state_val == cons.missing_label:
+                pass
             else:
-                state_val = state[self.specified_attributes[i]]
-                if state_val == self.condition[i] or state_val == cons.missing_label:
-                    pass
-                else:
-                    return False
+                return False
         return True
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # GENETIC ALGORITHM MECHANISMS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def uniformCrossover(self, cl):
-        """ Applies uniform crossover and returns if the classifiers changed. Handles both discrete and continuous attributes.
+        """ Applies uniform crossover and returns if the classifiers changed. Handles both discrete attributes.
         #SWARTZ: self. is where for the better attributes are more likely to be specified
         #DEVITO: cl. is where less useful attribute are more likely to be specified
         """
-        if cons.env.format_data.discrete_action: #Always crossover condition if the phenotype is discrete (if continuous phenotype, half the time phenotype crossover is performed instead)
-            self_specified_attributes = self.specified_attributes[:]
-            cl_specified_attributes = cl.specified_attributes[:]
-            probability = 0.5  #Equal probability for attribute alleles to be exchanged.
+        self_specified_attributes = self.specified_attributes[:]
+        cl_specified_attributes = cl.specified_attributes[:]
+        probability = 0.5  #Equal probability for attribute alleles to be exchanged.
 
-            #Make list of attribute references appearing in at least one of the parents.-----------------------------
-            combined_specified_atts = []
-            for i in self_specified_attributes:
+        #Make list of attribute references appearing in at least one of the parents.-----------------------------
+        combined_specified_atts = []
+        for i in self_specified_attributes:
+            combined_specified_atts.append(i)
+        for i in cl_specified_attributes:
+            if i not in combined_specified_atts:
                 combined_specified_atts.append(i)
-            for i in cl_specified_attributes:
-                if i not in combined_specified_atts:
-                    combined_specified_atts.append(i)
-                elif not cons.env.format_data.attribute_info[i][0]: #Attribute specified in both parents, and the attribute is discrete (then no reason to cross over)
-                    combined_specified_atts.remove(i)
-            combined_specified_atts.sort()
-            #--------------------------------------------------------------------------------------------------------
-            changed = False;
-            for att in combined_specified_atts:  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-                attribute_info = cons.env.format_data.attribute_info[att]
-                #-----------------------------
-                ref = 0
-                if att in self_specified_attributes:
-                    ref += 1
-                if att in cl_specified_attributes:
-                    ref += 1
-                #-----------------------------
+            else: #Attribute specified in both parents, and the attribute is discrete (then no reason to cross over)
+                combined_specified_atts.remove(i)
+        combined_specified_atts.sort()
+        #--------------------------------------------------------------------------------------------------------
+        changed = False
+        for att in combined_specified_atts:  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
+            if att in self_specified_attributes and random.random() > probability:
+                i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
+                cl.condition.append(self.condition.pop(i)) #Take attribute from self and add to cl
+                cl.specified_attributes.append(att)
+                self.specified_attributes.remove(att)
+                changed = True #Remove att from self and add to cl
 
-                if ref == 0:    #Attribute not specified in either condition (Attribute type makes no difference)
-                    print("Error: UniformCrossover!")
-                    pass
-
-                elif ref == 1:  #Attribute specified in only one condition - do probabilistic switch of whole attribute state (Attribute type makes no difference)
-                    if att in self_specified_attributes and random.random() > probability:
-                        i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
-                        cl.condition.append(self.condition.pop(i)) #Take attribute from self and add to cl
-                        cl.specified_attributes.append(att)
-                        self.specified_attributes.remove(att)
-                        changed = True #Remove att from self and add to cl
-
-
-                    if att in cl_specified_attributes and random.random() < probability:
-                        i = cl.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
-                        self.condition.append(cl.condition.pop(i)) #Take attribute from self and add to cl
-                        self.specified_attributes.append(att)
-                        cl.specified_attributes.remove(att)
-                        changed = True #Remove att from cl and add to self.
-
-
-                else: #Attribute specified in both conditions - do random crossover between state alleles.  The same attribute may be specified at different positions within either classifier
-                    #-------------------------------------------------------
-                    # CONTINUOUS ATTRIBUTE
-                    #-------------------------------------------------------
-                    if attribute_info[0]:
-                        i_cl1 = self.specified_attributes.index(att) #pairs with self (classifier 1)
-                        i_cl2 = cl.specified_attributes.index(att)   #pairs with cl (classifier 2)
-                        tmp_key = random.randint(0,3) #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Self absorbs cl, or cl absorbs self.
-                        if tmp_key == 0:    #Swap minimum
-                            temp = self.condition[i_cl1][0]
-                            self.condition[i_cl1][0] = cl.condition[i_cl2][0]
-                            cl.condition[i_cl2][0] = temp
-                        elif tmp_key == 1:  #Swap maximum
-                            temp = self.condition[i_cl1][1]
-                            self.condition[i_cl1][1] = cl.condition[i_cl2][1]
-                            cl.condition[i_cl2][1] = temp
-                        else: #absorb range
-                            all_list = self.condition[i_cl1] + cl.condition[i_cl2]
-                            new_min = min(all_list)
-                            new_max = max(all_list)
-                            if tmp_key == 2:  #self absorbs cl
-                                self.condition[i_cl1] = [new_min,new_max]
-                                #Remove cl
-                                cl.condition.pop(i_cl2)
-                                cl.specified_attributes.remove(att)
-                            else: #cl absorbs self
-                                cl.condition[i_cl2] = [new_min,new_max]
-                                #Remove self
-                                self.condition.pop(i_cl1)
-                                self.specified_attributes.remove(att)
-                    #-------------------------------------------------------
-                    # DISCRETE ATTRIBUTE
-                    #-------------------------------------------------------
-                    else:
-                        pass
-            tmp_list1 = self_specified_attributes[:]
-            tmp_list2 = cl.specified_attributes[:]
-            tmp_list1.sort()
-            tmp_list2.sort()
-            if changed and (tmp_list1 == tmp_list2):
-                changed = False
-
-            if self.action != cl.action and random.random() > probability:
-                # Switch phenotypes of 2 classifiers if GA is run in match set
-                temp = self.action
-                self.action = cl.action
-                cl.action = temp
-                changed = True
-            return changed
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE CROSSOVER
-        #-------------------------------------------------------
-        elif random.random() < 0.5:
-            return self.actionCrossover(cl)
+            if att in cl_specified_attributes and random.random() < probability:
+                i = cl.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
+                self.condition.append(cl.condition.pop(i)) #Take attribute from self and add to cl
+                self.specified_attributes.append(att)
+                cl.specified_attributes.remove(att)
+                changed = True #Remove att from cl and add to self.
+        #--------------------------------------------------------------------------------------------------------
+        tmp_list1 = self_specified_attributes[:]
+        tmp_list2 = cl.specified_attributes[:]
+        tmp_list1.sort()
+        tmp_list2.sort()
+        if changed and (tmp_list1 == tmp_list2):
+            changed = False
+        #--------------------------------------------------------------------------------------------------------
+        if self.action != cl.action and random.random() > probability:
+            # Switch phenotypes of 2 classifiers if GA is run in match set
+            temp = self.action
+            self.action = cl.action
+            cl.action = temp
+            changed = True
+        return changed
 
 
     def twoPointCrossover(self, cl):
@@ -294,26 +193,24 @@ class Classifier:
             points.append( temp_point )
         else:
             points.append( second_point )
-        if cons.env.format_data.discrete_action:
-            self_specified_attributes = self.specified_attributes[:]
-            cl_specified_attributes = cl.specified_attributes[:]
-            for i in range( points[1] ):
-                if i >= points[0]:
-                    if i in self_specified_attributes:
-                        if i not in cl_specified_attributes:
-                            index = self.specified_attributes.index(i)
-                            cl.condition.append(self.condition.pop(index))
-                            cl.specified_attributes.append(i)
-                            self.specified_attributes.remove(i)
-                            changed = True #Remove att from self and add to cl
-                    elif i in cl_specified_attributes:
-                        index = cl.specified_attributes.index(i) #reference to the position of the attribute in the rule representation
-                        self.condition.append(cl.condition.pop(index)) #Take attribute from self and add to cl
-                        self.specified_attributes.append(i)
-                        cl.specified_attributes.remove(i)
-                        changed = True
+        #--------------------------------------------------------------------------------------------------------
+        self_specified_attributes = self.specified_attributes[:]
+        cl_specified_attributes = cl.specified_attributes[:]
+        for i in range( points[0], points[1] ):
+            if i in self_specified_attributes:
+                if i not in cl_specified_attributes:
+                    index = self.specified_attributes.index(i)
+                    cl.condition.append(self.condition.pop(index))
+                    cl.specified_attributes.append(i)
+                    self.specified_attributes.remove(i)
+                    changed = True #Remove att from self and add to cl
+            elif i in cl_specified_attributes:
+                index = cl.specified_attributes.index(i) #reference to the position of the attribute in the rule representation
+                self.condition.append(cl.condition.pop(index)) #Take attribute from self and add to cl
+                self.specified_attributes.append(i)
+                cl.specified_attributes.remove(i)
+                changed = True
         return changed
-
 
 
     def actionCrossover(self, cl):
@@ -333,9 +230,7 @@ class Classifier:
                 self.action[1] = cl.action[1]
                 cl.action[1] = temp
                 changed = True
-
         return changed
-
 
     def Mutation(self, state):
         """ Mutates the condition of the classifier. Also handles phenotype mutation. This is a niche mutation, which means that the resulting classifier will still match the current instance.  """
@@ -344,60 +239,32 @@ class Classifier:
         # MUTATE CONDITION
         #-------------------------------------------------------
         for att in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-            attribute_info = cons.env.format_data.attribute_info[att]
             if random.random() < cons.mu and state[att] != cons.missing_label:
                 #MUTATION--------------------------------------------------------------------------------------------------------------
                 if att not in self.specified_attributes: #Attribute not yet specified
                     self.specified_attributes.append(att)
-                    self.condition.append(self.buildMatch(att, state)) #buildMatch handles both discrete and continuous attributes
+                    self.condition.append( state[att] )
                     changed = True
-
                 elif att in self.specified_attributes: #Attribute already specified
                     i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
-                    #-------------------------------------------------------
-                    # DISCRETE OR CONTINUOUS ATTRIBUTE - remove attribute specification with 50% chance if we have continuous attribute, or 100% if discrete attribute.
-                    #-------------------------------------------------------
-                    if not attribute_info[0] or random.random() > 0.5:
-                        self.specified_attributes.remove(att)
-                        self.condition.pop(i) #buildMatch handles both discrete and continuous attributes
-                        changed = True
-                    #-------------------------------------------------------
-                    # CONTINUOUS ATTRIBUTE - (mutate range with 50% probability vs. removing specification of this attribute all together)
-                    #-------------------------------------------------------
-                    else:
-                        #Mutate continuous range - based on Bacardit 2009 - Select one bound with uniform probability and add or subtract a randomly generated offset to bound, of size between 0 and 50% of att domain.
-                        att_range = float(attribute_info[1][1]) - float(attribute_info[1][0])
-                        mutate_range = random.random()*0.5*att_range
-                        if random.random() > 0.5: #Mutate minimum
-                            if random.random() > 0.5: #Add
-                                self.condition[i][0] += mutate_range
-                            else: #Subtract
-                                self.condition[i][0] -= mutate_range
-                        else: #Mutate maximum
-                            if random.random() > 0.5: #Add
-                                self.condition[i][1] += mutate_range
-                            else: #Subtract
-                                self.condition[i][1] -= mutate_range
-
-                        #Repair range - such that min specified first, and max second.
-                        self.condition[i].sort()
-                        changed = True
-                #-------------------------------------------------------
-                # NO MUTATION OCCURS
-                #-------------------------------------------------------
+                    self.specified_attributes.remove(att)
+                    self.condition.pop(i)
+                    changed = True
                 else:
                     pass
         #-------------------------------------------------------
         # MUTATE PHENOTYPE
         #-------------------------------------------------------
-        if cons.env.format_data.discrete_action:
-            action_changed = self.discreteActionMutation()
-        #else:
-        #    nowChanged = self.continuousActionMutation(phenotype)
-
+        action_changed = False
+        if random.random() < cons.mu:
+            action_list = cons.env.format_data.action_list[:]
+            action_list.remove(self.action)
+            new_action = random.choice( action_list )
+            self.action = new_action[0]
+            action_changed= True
+        #--------------------------------------------------------------------------------------------------------
         if changed or action_changed:
             return True
-
 
     def discreteActionMutation(self):
         """ Mutate this rule's discrete phenotype. """
@@ -408,9 +275,7 @@ class Classifier:
             new_action = random.sample(action_list,1)
             self.action = new_action[0]
             changed= True
-
         return changed
-
 
     def continuousActionMutation(self, phenotype):
         """ Mutate this rule's continuous phenotype. """
@@ -441,7 +306,6 @@ class Classifier:
                 else: #Subtract
                     self.action[1] += mutate_range
                 changed = True
-
             #Repair range - such that min specified first, and max second.
             self.action.sort()
         #---------------------------------------------------------------------
@@ -452,23 +316,10 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def subsumes(self, cl):
         """ Returns if the classifier (self) subsumes cl """
-        #-------------------------------------------------------
-        # DISCRETE PHENOTYPE
-        #-------------------------------------------------------
-        if cons.env.format_data.discrete_action:
-            if cl.action == self.action:
-                if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
-                    return True
-            return False
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE -  NOTE: for continuous phenotypes, the subsumption intuition is reversed, i.e. While a subsuming rule condition is more general, a subsuming phenotype is more specific.
-        #-------------------------------------------------------
-        else:
-            if self.action[0] >= cl.action[0] and self.action[1] <= cl.action[1]:
-                if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
-                    return True
-            return False
-
+        if cl.action == self.action:
+            if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
+                return True
+        return False
 
     def isPossibleSubsumer(self):
         """ Returns if the classifier (self) is a possible subsumer. A classifier must be as or more accurate than the classifier it is trying to subsume.  """
@@ -476,30 +327,13 @@ class Classifier:
             return True
         return False
 
-
     def isMoreGeneral(self,cl):
         """ Returns if the classifier (self) is more general than cl. Check that all attributes specified in self are also specified in cl. """
-        if len(self.specified_attributes) >= len(cl.specified_attributes):# and self.action != cl.action and self.prediction < cl.prediction and self.error > cl.error:
+        if len( self.specified_attributes ) >= len( cl.specified_attributes ):# and self.action != cl.action and self.prediction < cl.prediction and self.error > cl.error:
             return False
-        for i in range(len(self.specified_attributes)): #Check each attribute specified in self.condition
-            attribute_info = cons.env.format_data.attribute_info[self.specified_attributes[i]]
-            if self.specified_attributes[i] not in cl.specified_attributes:
-                return False
-            #-------------------------------------------------------
-            # CONTINUOUS ATTRIBUTE
-            #-------------------------------------------------------
-            other_ref = cl.specified_attributes.index(self.specified_attributes[i])
-            if attribute_info[0]:
-                #If self has a narrower ranger of values than it is a subsumer
-                if self.condition[i][0] < cl.condition[other_ref][0]:
-                    return False
-                if self.condition[i][1] > cl.condition[other_ref][1]:
-                    return False
-            #else:   # discrete attributes
-            #    if self.condition[i] != cl.condition[otherRef]:
-            #        return False
-
-        return True
+        if set( self.specified_attributes ).issubset( cl.specified_attributes ):
+            return True
+        return False
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # DELETION METHOD
@@ -513,7 +347,6 @@ class Classifier:
             else:
                 self.delete_vote *= avg_fitness / (cons.init_fit / self.numerosity)
         return self.delete_vote
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # OTHER METHODS
@@ -535,12 +368,10 @@ class Classifier:
         #-------------------------------------------------------
         else:
             condition_list = state[att] #State already formatted like GABIL in DataManagement
-
         return condition_list
 
-
     def equals(self, cl):
-        """ Returns if the two classifiers are identical in condition and phenotype. This works for discrete or continuous attributes or phenotypes. """
+        """ Returns if the two classifiers are identical in condition and phenotype. This works for discrete attributes and phenotypes. """
         if cl.action == self.action and len(cl.specified_attributes) == len(self.specified_attributes): #Is phenotype the same and are the same number of attributes specified - quick equality check first.
             cl_atts = sorted(cl.specified_attributes)
             self_atts = sorted(self.specified_attributes)
@@ -553,7 +384,6 @@ class Classifier:
                         return False
                 return True
         return False
-
 
     def updateXCSParameters(self, reward):
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
@@ -569,13 +399,11 @@ class Classifier:
         else:
             self.accuracy = cons.alpha * ( ( cons.offset_epsilon / self.error ) ** cons.nu ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
 
-
     def updateFitness(self):
         if self.action_cnt >= 1.0 / cons.beta:
             self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
         else:
             self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
-
 
     def updateActionSetSize(self, actionset_size):
         """  Updates the average action set size. """
@@ -584,51 +412,41 @@ class Classifier:
         else:
             self.avg_actionset_size = (self.avg_actionset_size * (self.action_cnt-1)+ actionset_size) / float(self.action_cnt)
 
-
     def updateExperience(self):
         """ Increases the experience of the classifier by one. Once an epoch has completed, rule accuracy can't change."""
         self.matchCount += 1
-
 
     def updateActionExp(self):
         """ Increases the experience of the classifier by one. Once an epoch has completed, rule accuracy can't change."""
         self.action_cnt += 1
 
-
     def updateGACount(self):
         """ Increment number of times the classifier is selected in GA by one, for statistics. """
         self.ga_count += 1
-
 
     def updateNumerosity(self, num):
         """ Updates the numberosity of the classifier.  Notice that 'num' can be negative! """
         self.numerosity += num
 
-
     def updateTimeStamp(self, ts):
         """ Sets the time stamp of the classifier. """
         self.ga_timestamp = ts
-
 
     def setPrediction(self,pred):
         """ Sets the accuracy of the classifier """
         self.prediction = pred
 
-
     def setError(self,err):
         """ Sets the accuracy of the classifier """
         self.error = err
-
 
     def setAccuracy(self,acc):
         """ Sets the accuracy of the classifier """
         self.accuracy = acc
 
-
     def setFitness(self, fit):
         """  Sets the fitness of the classifier. """
         self.fitness = fit
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # PRINT CLASSIFIER FOR POPULATION OUTPUT FILE
@@ -637,32 +455,17 @@ class Classifier:
         """ Formats and returns an output string describing this classifier. """
         classifier_info = ""
         for att in range(cons.env.format_data.numb_attributes):
-            attribute_info = cons.env.format_data.attribute_info[att]
             if att in self.specified_attributes:  #If the attribute was specified in the rule
                 i = self.specified_attributes.index(att)
-                #-------------------------------------------------------
-                # CONTINUOUS ATTRIBUTE
-                #-------------------------------------------------------
-                if attribute_info[0]:
-                    classifier_info += str(self.condition[i][0])+';'+str(self.condition[i][1]) + "\t"
-                #-------------------------------------------------------
-                # DISCRETE ATTRIBUTE
-                #-------------------------------------------------------
-                else:
-                    classifier_info += str(self.condition[i]) + "\t"
+                classifier_info += str(self.condition[i]) + "\t"
             else: # Attribute is wild.
                 classifier_info += '#' + "\t"
         #-------------------------------------------------------------------------------
         specificity = len(self.condition) / float(cons.env.format_data.numb_attributes)
-
-        if cons.env.format_data.discrete_action:
-            classifier_info += str(self.action)+"\t"
-        else:
-            classifier_info += str(self.action[0])+';'+str(self.action[1])+"\t"
+        classifier_info += str(self.action)+"\t"
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         classifier_info += '{:.1f}'.format(self.prediction)+"\t"+'{:.2f}'.format(self.error)+"\t"+'{:.2f}'.format(self.fitness)+"\t"+str(self.numerosity)+"\t"+str(self.ga_count)+"\t"
         classifier_info += '{:.1f}'.format(self.avg_actionset_size)+"\t\t"+str(self.ga_timestamp)+"\t\t"+str(self.init_timestamp)+"\t\t"+'{:.2f}'.format(specificity)+"\t\t"
         classifier_info += '{:.1f}'.format(self.delete_vote)+"\t\t"+str(self.action_cnt)+"\n"
-
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
         return classifier_info

@@ -106,7 +106,7 @@ class XCS:
             cons.timer.stopTimeEvaluation()
 
             #-------------------------------------------------------
-            # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION - strategy different for discrete vs continuous phenotypes
+            # CHECKPOINT - COMPLETE EVALUTATION OF POPULATION
             #-------------------------------------------------------
             if self.iteration in cons.iter_checkpoints:
                 cons.timer.startTimeEvaluation()
@@ -117,19 +117,11 @@ class XCS:
                 self.population.runAttGeneralitySum(True)
                 cons.env.startEvaluationMode()  #Preserves learning position in training data
                 if cons.test_file != 'None': #If a testing file is available.
-                    if cons.env.format_data.discrete_action:
-                        train_eval = self.doPopEvaluation(True)
-                        test_eval = self.doPopEvaluation(False)
-                    else:
-                        train_eval = self.doContPopEvaluation(True)
-                        test_eval = self.doContPopEvaluation(False)
+                    train_eval = self.doPopEvaluation(True)
+                    test_eval = self.doPopEvaluation(False)
                 else:  #Only a training file is available
-                    if cons.env.format_data.discrete_action:
-                        train_eval = self.doPopEvaluation(True)
-                        test_eval = None
-                    else:
-                        train_eval = self.doContPopEvaluation(True)
-                        test_eval = None
+                    train_eval = self.doPopEvaluation(True)
+                    test_eval = None
 
                 cons.env.stopEvaluationMode() #Returns to learning position in training data
                 cons.timer.stopTimeEvaluation()
@@ -402,10 +394,6 @@ class XCS:
                 temp_line = f.readline()
             temp_list = temp_line.strip().split('\t')
             self.tracked_results = temp_list
-            if cons.env.format_data.discrete_action:
-                for i in range(len(self.tracked_results)):
-                    self.tracked_results[i] = int(self.tracked_results[i])
-            else:
-                for i in range(len(self.tracked_results)):
-                    self.tracked_results[i] = float(self.tracked_results[i])
+            for i in range(len(self.tracked_results)):
+                self.tracked_results[i] = int(self.tracked_results[i])
             f.close()
