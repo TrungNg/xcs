@@ -320,21 +320,23 @@ class ClassifierSet:
         """  Selects parents using tournament selection according to the fitness of the classifiers. """
         selected_list = [None, None]
         count = 0
-        set_list = self.action_set #actionSet set is a list of reference IDs
+        set_list = self.action_set[:] #actionSet set is a list of reference IDs
 
         while count < 2:
             tournament_size = int(len(set_list)*cons.theta_sel)
+            if tournament_size < 1:
+                tournament_size = 1
             post_list = random.sample(set_list,tournament_size)
-
             highest_fitness = 0
             best_cl = self.action_set[0]
             for j in post_list:
                 if self.pop_set[j].fitness > highest_fitness:
                     highest_fitness = self.pop_set[j].fitness
                     best_cl = j
-
             selected_list[count] = self.pop_set[ best_cl ]
             count += 1
+            if len( set_list ) > 1:
+                set_list.remove( best_cl )
 
         return selected_list
 
