@@ -220,23 +220,21 @@ class Classifier:
             points.append( second_point )
         self_specified_attributes = self.specified_attributes[:]
         cl_specified_attributes = cl.specified_attributes[:]
-        for i in range( points[1] ):
-            if i >= points[0]:
-                if i in self_specified_attributes:
-                    if i not in cl_specified_attributes:
-                        index = self.specified_attributes.index(i)
-                        cl.condition.append(self.condition.pop(index))
-                        cl.specified_attributes.append(i)
-                        self.specified_attributes.remove(i)
-                        changed = True #Remove att from self and add to cl
-                elif i in cl_specified_attributes:
-                    index = cl.specified_attributes.index(i) #reference to the position of the attribute in the rule representation
-                    self.condition.append(cl.condition.pop(index)) #Take attribute from self and add to cl
-                    self.specified_attributes.append(i)
-                    cl.specified_attributes.remove(i)
-                    changed = True
+        for i in range( points[0], points[1] ):
+            if i in self_specified_attributes:
+                if i not in cl_specified_attributes:
+                    index = self.specified_attributes.index(i)
+                    cl.condition.append(self.condition.pop(index))
+                    cl.specified_attributes.append(i)
+                    self.specified_attributes.remove(i)
+                    changed = True #Remove att from self and add to cl
+            elif i in cl_specified_attributes:
+                index = cl.specified_attributes.index(i) #reference to the position of the attribute in the rule representation
+                self.condition.append(cl.condition.pop(index)) #Take attribute from self and add to cl
+                self.specified_attributes.append(i)
+                cl.specified_attributes.remove(i)
+                changed = True
         return changed
-
 
 
     def actionCrossover(self, cl):
@@ -307,7 +305,6 @@ class Classifier:
             new_action = random.sample(action_list,1)
             self.action = new_action[0]
             changed= True
-
         return changed
 
 
@@ -351,22 +348,9 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     def subsumes(self, cl):
         """ Returns if the classifier (self) subsumes cl """
-        #-------------------------------------------------------
-        # DISCRETE PHENOTYPE
-        #-------------------------------------------------------
-        if cons.env.format_data.discrete_action:
-            if cl.action == self.action:
-                if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
-                    return True
-            return False
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE -  NOTE: for continuous phenotypes, the subsumption intuition is reversed, i.e. While a subsuming rule condition is more general, a subsuming phenotype is more specific.
-        #-------------------------------------------------------
-        else:
-            if self.action[0] >= cl.action[0] and self.action[1] <= cl.action[1]:
-                if self.isPossibleSubsumer() and self.isMoreGeneral(cl):
-                    return True
-            return False
+        if cl.action == self.action and self.isPossibleSubsumer() and self.isMoreGeneral(cl):
+            return True
+        return False
 
 
     def isPossibleSubsumer(self):
