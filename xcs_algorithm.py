@@ -146,7 +146,6 @@ class XCS:
 
     def runExploit(self, state_action):
         """ Run an exploit iteration. """
-        """ Run an explore learning iteration. """
         self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
 
         cons.timer.startTimeEvaluation()

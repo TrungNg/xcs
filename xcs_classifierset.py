@@ -82,12 +82,12 @@ class ClassifierSet:
         #Initial values
         do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
         matched_phenotype_list = []
-        self.current_instance = state
         #-------------------------------------------------------
         # MATCHING
         #-------------------------------------------------------
         cons.timer.startTimeMatching()
         if cons.multiprocessing:
+            self.current_instance = state
             results = pool.map( self.parallelMatching, range( len( self.pop_set ) ) )
             for i in results:
                 if i != None:

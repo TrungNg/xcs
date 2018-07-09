@@ -34,8 +34,8 @@ class Prediction:
 
         for ref in population.match_set:
             cl = population.pop_set[ref]
-            self.prediction[cl.action] += cl.prediction * cl.fitness# * cl.numerosity
-            denominator[cl.action] += cl.fitness# * cl.numerosity
+            self.prediction[cl.action] += cl.prediction * cl.fitness
+            denominator[cl.action] += cl.fitness
             self.tiebreak_numerosity[cl.action] += cl.numerosity
             self.tiebreak_timestamp[cl.action] += cl.init_timestamp
 
