@@ -228,6 +228,10 @@ class ClassifierSet:
             selected_list = self.selectClassifierT()
             clP1 = selected_list[0]
             clP2 = selected_list[1]
+        elif cons.selection_method == "tournament2":
+            selected_list = self.selectClassifierT2()
+            clP1 = selected_list[0]
+            clP2 = selected_list[1]
         else:
             clP1_index = self.selectClassifierUsingIqbalTournamentSel()
             clP2_index = self.selectClassifierUsingIqbalTournamentSel()
