@@ -28,7 +28,6 @@ class XCS:
         #Global Parameters-------------------------------------------------------------------------------------
         self.population = None          # The rule population (the 'solution/model' evolved by XCS)
         self.learn_track = None       # Output file that will store tracking information during learning
-        self.pool = None
         if cons.multiprocessing:
             self.pool = Pool( processes=cpu_count() )
         #-------------------------------------------------------
@@ -146,7 +145,7 @@ class XCS:
 
     def runExploit(self, state_action):
         """ Run an exploit iteration. """
-        self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
+        self.population.makeMatchSet( state_action[0], self.iteration )
 
         cons.timer.startTimeEvaluation()
         prediction = Prediction( self.population )
@@ -168,7 +167,7 @@ class XCS:
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # FORM A MATCH SET - includes covering
         #-----------------------------------------------------------------------------------------------------------------------------------------
-        self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
+        self.population.makeMatchSet( state_action[0], self.iteration )
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # MAKE A PREDICTION - utilized here for tracking estimated learning progress.  Typically used in the explore phase of many LCS algorithms.
         #-----------------------------------------------------------------------------------------------------------------------------------------
