@@ -25,8 +25,8 @@ class Constants:
         self.multiprocessing = bool( int( par['multiprocessing'] ) )
         self.train_file = par['trainFile']                                      #Saved as text
         self.test_file = par['testFile']                                        #Saved as text
-        self.original_out_file = str(par['outFileName'])                        #Saved as text
-        self.out_file = str(par['outFileName'])+'_XCS'                          #Saved as text
+        self.outfile_dir = str(par['outFileDir'])                               #Saved as text
+        self.out_file = self.outfile_dir+'XCS_'+self.problem_type+'_'+str(self.problem_sizes)         #Saved as text
         self.checkpoint_iter = par['learningIterations']                        #Saved as text
         self.extra_estimation = bool( int( par['extraEstimationRun'] ) )
         self.N = int(par['N'])                                                  #Saved as integer
