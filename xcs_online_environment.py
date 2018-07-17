@@ -162,6 +162,32 @@ class HiddenMultiplexer( DataGenerator ):
         return None
 
 
+class MajorityOnGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
+        self.headers = []
+        for i in range( sizes[0] ):
+            self.headers.append( 'B' + str(i) )
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            condition.append( str( random.randint( 0, 1 ) ) )
+        #Find output for generated condition
+        counts = 0
+        for att in condition:
+            if att == '1':
+                counts += 1
+        if counts > self.numb_attributes / 2:
+            output = '1'
+        else:
+            output = '0'
+        return [ condition, output ]
+
+
 class ParityCountOne( DataGenerator ):
     def __init__(self, sizes):
         """ Initialize Paratiy - Count one data generator. Lowest level are blocks of data with same size.
