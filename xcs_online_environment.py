@@ -23,6 +23,7 @@ class Online_Environment:
         self.saved_dat_ref = 0
         options={ 'multiplexer':MulplexerGenerator,
                   'hidden_multiplexer': HiddenMultiplexer,
+                  'majorityon':MajorityOnGenerator,
                   'parity_countone':ParityCountOne }
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
