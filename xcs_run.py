@@ -32,6 +32,25 @@ def getOptions( argv ):
     # Assign options to paramters
     if 'seed' in opts:
         cons.random_seed = int( opts['seed'] )
+    if 'N' in opts:
+        cons.N = int( opts['N'] )
+    if 'problemType' in opts:
+        cons.problem_type = str( opts['problemType'] )
+    if 'problemSize' in opts:
+        sizes = opts['problemSize'].split('.')
+        cons.problem_sizes = [ 0 ] * 3
+        for i in range( len( sizes ) ):
+            cons.problem_sizes[ i ] = int( sizes[ i ] )
+    if 'crossover' in opts:
+        cons.chi = float( opts['crossover'] )
+    if 'mutation' in opts:
+        cons.mu = float( opts['mutation'] )
+    if 'beta' in opts:
+        cons.beta = float( opts['beta'] )
+    if 'ActionsetSub' in opts:
+        cons.do_actionset_subsumption = bool(int( opts['ActionsetSub'] ))
+    if 'GASub' in opts:
+        cons.do_ga_subsumption = bool(int( opts['GASub'] ))
 
 
 helpstr = """Failed attempt to run e-LCS.  Please ensure that a configuration file giving all run parameters has been specified."""
