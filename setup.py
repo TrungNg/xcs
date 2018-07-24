@@ -1,5 +1,5 @@
 from distutils.core import setup
-#from distutils.extension import Extension
+from distutils.extension import Extension
 from Cython.Build import cythonize
 
 # SRC_DIR = "cysrc"
@@ -56,10 +56,21 @@ from Cython.Build import cythonize
 #                   [SRC_DIR + "/xcs_run.pyx"]
 #                   )
 
-
 #EXTENSIONS = cythonize([ext_constants, ext_config_parser, ext_data_management, ext_offline_environment, ext_online_environment, ext_outputfile_manager, ext_timer, ext_prediction, ext_classifier, ext_classifierset, ext_class_accuracy, ext_algorithm])
 
-setup(
-  name = 'xcs_run',
-  ext_modules = cythonize(["cysrc/*.pyx"]),
-)
+#ext = Extension("xcs",["cysrc/*.pyx","randgen.c"])
+
+# setup(
+    #ext_modules = cythonize(["cysrc/*.pyx"]),
+    # ext_modules = cythonize(["cysrc/randgen.c","cysrc/*.pyx"])
+                              #language="c++",)
+# )
+
+ext_modules = [
+    Extension("*",
+              sources=["cysrc/*.pyx","cysrc/rand.c"]
+              )
+]
+
+setup(name="xcs",
+      ext_modules=cythonize(ext_modules))

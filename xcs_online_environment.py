@@ -12,7 +12,7 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 #Import Required Modules--------------------------------------
 from xcs_constants import *
-import random
+import crandom
 import sys
 #-------------------------------------------------------------
 
@@ -81,7 +81,7 @@ class MulplexerGenerator( DataGenerator ):
         condition = []
         #Generate random boolean string
         for _ in range( self.numb_attributes ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+            condition.append( str( crandom.randint( 0, 1 ) ) )
 
         gates=""
         for j in range( self.address_size ):
@@ -122,7 +122,7 @@ class ParityCountOne( DataGenerator ):
         condition = []
         #Generate random boolean string
         for _ in range( self.parity_size * self.countone_size ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+            condition.append( str( crandom.randint( 0, 1 ) ) )
         counts=[]
         for j in range( self.countone_size ):
             counts.append( 0 )

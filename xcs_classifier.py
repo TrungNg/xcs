@@ -13,7 +13,7 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 #Import Required Modules---------------
 from xcs_constants import *
-import random
+import crandom
 import math
 #--------------------------------------
 
@@ -59,32 +59,16 @@ class Classifier:
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
         self.avg_actionset_size = set_size
-        data_info = cons.env.format_data
-        #-------------------------------------------------------
-        # DISCRETE PHENOTYPE
-        #-------------------------------------------------------
-        if data_info.discrete_action:
-            if action != None:
-                self.action = action
-            else:
-                self.action = random.choice(cons.env.format_data.action_list)
-        #-------------------------------------------------------
-        # CONTINUOUS PHENOTYPE
-        #-------------------------------------------------------
+        if action != None:
+            self.action = action
         else:
-            action_range = data_info.action_list[1] - data_info.action_list[0]
-            range_radius = random.randint(25,75)*0.01*action_range / 2.0 #Continuous initialization domain radius.
-            if action == None:
-                action = data_info.action_list[0] + range_radius + random.random() * ( action_range - 2 * range_radius )
-            low = float(action) - range_radius
-            high = float(action) + range_radius
-            self.action = [low,high] #ALKR Representation, Initialization centered around training instance  with a range between 25 and 75% of the domain size.
+            self.action = crandom.choice(cons.env.format_data.action_list)
         #-------------------------------------------------------
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
         while len(self.specified_attributes) < 1:
             for att in range(len(state)):
-                if random.random() < cons.p_spec and state[att] != cons.missing_label:
+                if crandom.random() < cons.p_spec and state[att] != cons.missing_label:
                     self.specified_attributes.append(att)
                     self.condition.append( state[att] )
 
@@ -174,16 +158,16 @@ class Classifier:
                 combined_specified_atts.remove(i)
         combined_specified_atts.sort()
         #--------------------------------------------------------------------------------------------------------
-        changed = False;
+        changed = False
         for att in combined_specified_atts:  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
             #-----------------------------
-            if att in self_specified_attributes and random.random() > probability:
+            if att in self_specified_attributes and crandom.random() > probability:
                 i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
                 cl.condition.append(self.condition.pop(i)) #Take attribute from self and add to cl
                 cl.specified_attributes.append(att)
                 self.specified_attributes.remove(att)
                 changed = True #Remove att from self and add to cl
-            if att in cl_specified_attributes and random.random() < probability:
+            if att in cl_specified_attributes and crandom.random() < probability:
                 i = cl.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
                 self.condition.append(cl.condition.pop(i)) #Take attribute from self and add to cl
                 self.specified_attributes.append(att)
@@ -197,7 +181,7 @@ class Classifier:
         if changed and (tmp_list1 == tmp_list2):
             changed = False
 
-        if self.action != cl.action and random.random() > probability:
+        if self.action != cl.action and crandom.random() > probability:
             # Switch phenotypes of 2 classifiers if GA is run in match set
             temp = self.action
             self.action = cl.action
@@ -210,8 +194,8 @@ class Classifier:
         """ Applies two point crossover and returns if the classifiers changed. Handles merely discrete attributes and phenotypes """
         points = []
         changed = False
-        points.append( int( random.random() * ( cons.env.format_data.numb_attributes + 1 ) ) )
-        second_point = int( random.random() * ( cons.env.format_data.numb_attributes + 1 ) )
+        points.append( int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) ) )
+        second_point = int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) )
         if points[0] > second_point:
             temp_point = points[0]
             points[0] = second_point
@@ -243,7 +227,7 @@ class Classifier:
         if self.action[0] == cl.action[0] and self.action[1] == cl.action[1]:
             return changed
         else:
-            tmp_key = random.random() < 0.5 #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Children preserve parent phenotypes.
+            tmp_key = crandom.random() < 0.5 #Make random choice between 4 scenarios, Swap minimums, Swap maximums, Children preserve parent phenotypes.
             if tmp_key: #Swap minimum
                 temp = self.action[0]
                 self.action[0] = cl.action[0]
@@ -265,7 +249,7 @@ class Classifier:
         # MUTATE CONDITION
         #-------------------------------------------------------
         for att in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-            if random.random() < cons.mu and state[att] != cons.missing_label:
+            if crandom.random() < cons.mu and state[att] != cons.missing_label:
                 #MUTATION--------------------------------------------------------------------------------------------------------------
                 if att not in self.specified_attributes: #Attribute not yet specified
                     self.specified_attributes.append(att)
@@ -285,10 +269,10 @@ class Classifier:
         # MUTATE PHENOTYPE
         #-------------------------------------------------------
         action_changed = False
-        if random.random() < cons.mu:
+        if crandom.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
-            new_action = random.choice(action_list)
+            new_action = crandom.choice(action_list)
             self.action = new_action[0]
             action_changed= True
 
@@ -299,10 +283,10 @@ class Classifier:
     def discreteActionMutation(self):
         """ Mutate this rule's discrete phenotype. """
         changed = False
-        if random.random() < cons.mu:
+        if crandom.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
-            new_action = random.sample(action_list,1)
+            new_action = crandom.sample(action_list,1)
             self.action = new_action[0]
             changed= True
         return changed
@@ -311,28 +295,28 @@ class Classifier:
     def continuousActionMutation(self, phenotype):
         """ Mutate this rule's continuous phenotype. """
         changed = False
-        if random.random() < cons.mu: #Mutate continuous phenotype
+        if crandom.random() < cons.mu: #Mutate continuous phenotype
             action_range = self.action[1] - self.action[0]
-            mutate_range = random.random()*0.5*action_range
-            tmp_key = random.randint(0,2) #Make random choice between 3 scenarios, mutate minimums, mutate maximums, mutate both
+            mutate_range = crandom.random()*0.5*action_range
+            tmp_key = crandom.randint(0,2) #Make random choice between 3 scenarios, mutate minimums, mutate maximums, mutate both
             if tmp_key == 0: #Mutate minimum
-                if random.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
+                if crandom.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
                     self.action[0] += mutate_range
                 else: #Subtract
                     self.action[0] -= mutate_range
                 changed = True
             elif tmp_key == 1: #Mutate maximum
-                if random.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
+                if crandom.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
                     self.action[1] -= mutate_range
                 else: #Subtract
                     self.action[1] += mutate_range
                 changed = True
             else: #mutate both
-                if random.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
+                if crandom.random() > 0.5 or self.action[0] + mutate_range <= phenotype: #Checks that mutated range still contains current phenotype
                     self.action[0] += mutate_range
                 else: #Subtract
                     self.action[0] -= mutate_range
-                if random.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
+                if crandom.random() > 0.5 or self.action[1] - mutate_range >= phenotype: #Checks that mutated range still contains current phenotype
                     self.action[1] -= mutate_range
                 else: #Subtract
                     self.action[1] += mutate_range

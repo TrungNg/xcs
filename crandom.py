@@ -27,9 +27,9 @@ def choice( choices ):
 def sample( choices, k ):
     """ select k samples without replacing from choices. """
     selected = []
-    choices_cp = choices
     if k > len(choices):
-        return -1
+        raise ValueError("k " + str(k) + " is larger than the number of choices " + str(len(choices)))
+    choices_cp = choices[:]
     for i in range(k):
         selected_item = choice(choices_cp)
         selected.append( selected_item )

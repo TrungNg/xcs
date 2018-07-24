@@ -70,6 +70,7 @@ class Constants:
         self.do_ga_subsumption = bool(int(par['doGASubsumption']))
         self.do_actionset_subsumption = bool(int(par['doActionetSubsumption'])) #Saved as Boolean
         self.selection_method = par['selectionMethod']                          #Saved as text
+        self.tournament_distinct_parents = bool(int(par['tournamentDifferentParent'])) #Saved as Boolean
         self.theta_sel = float(par['theta_sel'])                                #Saved as float
         self.crossover_method = par['crossoverMethod']                          #Saved as text
 

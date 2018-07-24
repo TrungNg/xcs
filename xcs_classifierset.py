@@ -12,7 +12,7 @@ Description:
 #Import Required Modules---------------------
 from xcs_constants import *
 from xcs_classifier import Classifier
-import random
+import crandom
 #--------------------------------------------
 
 class ClassifierSet:
@@ -111,7 +111,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         while do_covering:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
-            new_cl = Classifier(iteration, state, random.choice( missing_actions ),set_size+1)
+            new_cl = Classifier(iteration, state, crandom.choice( missing_actions ),set_size+1)
             set_size += 1
             self.addClassifierToPopulation( new_cl )
             self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
@@ -172,7 +172,7 @@ class ClassifierSet:
             vote_sum += vote
             vote_list.append(vote)
         #--------------------------------------------------------
-        choice_point = vote_sum * random.random() #Determine the choice point
+        choice_point = vote_sum * crandom.random() #Determine the choice point
         new_sum = 0.0
         for i in range(len(vote_list)):
             cl = self.pop_set[i]
@@ -262,7 +262,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
         #-------------------------------------------------------
-        if not cl1.equals(cl2) and random.random() < cons.chi:
+        if not cl1.equals(cl2) and crandom.random() < cons.chi:
             if cons.crossover_method == 'uniform':
                 changed = cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
@@ -309,7 +309,7 @@ class ClassifierSet:
             while count < 2:
                 fit_sum = self.getFitnessSum(set_list)
 
-                choice_point = random.random() * fit_sum
+                choice_point = crandom.random() * fit_sum
                 i=0
                 sum_cl = self.pop_set[set_list[i]].fitness
                 while choice_point > sum_cl:
@@ -317,7 +317,7 @@ class ClassifierSet:
                     sum_cl += self.pop_set[set_list[i]].fitness
 
                 selected_list[count] = self.pop_set[set_list[i]]
-                set_list.remove(set_list[i])
+                set_list.pop(i)
                 count += 1
             #-----------------------------------------------
         elif len(set_list) == 2:
@@ -339,61 +339,61 @@ class ClassifierSet:
             tournament_size = int(len(set_list)*cons.theta_sel)
             if tournament_size < 1:
                 tournament_size = 1
-            post_list = random.sample(set_list,tournament_size)
+            post_list = crandom.sample(set_list,tournament_size)
             highest_fitness = 0
-            best_cl = self.action_set[0]
+            best_cl = post_list[0]
             for j in post_list:
                 if self.pop_set[j].fitness > highest_fitness:
                     highest_fitness = self.pop_set[j].fitness
                     best_cl = j
             selected_list[count] = self.pop_set[ best_cl ]
             count += 1
-            if len( set_list ) > 1:
+            if cons.tournament_distinct_parents and len( set_list ) > 1:
                 set_list.remove( best_cl )
 
         return selected_list
 
-    def selectClassifierUsingIqbalTournamentSel(self):
-        winnerSet = []
-        fitness = -1.0
-        select_tolerance = 0
-
-        # there must be at least one classifier in the set
-        # if classifierset==None or len(classifierset)==0:
-        #    print "in selectClassifierUsingIqbalTournamentSel classifierset mustn't be None"
-
-        # only one classifier in set
-        if len(self.action_set) == 1:
-            return self.action_set[0]
-
-        # tournament with fixed size
-        # tournament selection with the tournament size approx. equal to tournamentSize setsum
-        while len(winnerSet) == 0:
-            for i in self.action_set:
-                # if his fitness is worse then do not bother
-                if len(winnerSet) == 0 or (fitness - select_tolerance) <= self.pop_set[i].fitness/self.pop_set[i].numerosity:
-                    for j in range(0, self.pop_set[i].numerosity):
-                        if random.random() < cons.theta_sel:
-                            if len(winnerSet) == 0:
-                                # the first one
-                                winnerSet.append(i)
-                                fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
-
-                            else:
-                                if (fitness + select_tolerance) > self.pop_set[i].fitness/self.pop_set[i].numerosity:
-                                    winnerSet.append(i)
-
-                                else:
-                                    winnerSet = []
-                                    winnerSet.append(i)
-                                    fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
-                            break
-
-            # print winnerSet
-        if len(winnerSet) > 1:
-            size = random.randint(0, len(winnerSet) - 1)
-            return winnerSet[size]
-        return winnerSet[0]
+    # def selectClassifierUsingIqbalTournamentSel(self):
+    #     winnerSet = []
+    #     fitness = -1.0
+    #     select_tolerance = 0
+    #
+    #     # there must be at least one classifier in the set
+    #     # if classifierset==None or len(classifierset)==0:
+    #     #    print "in selectClassifierUsingIqbalTournamentSel classifierset mustn't be None"
+    #
+    #     # only one classifier in set
+    #     if len(self.action_set) == 1:
+    #         return self.action_set[0]
+    #
+    #     # tournament with fixed size
+    #     # tournament selection with the tournament size approx. equal to tournamentSize setsum
+    #     while len(winnerSet) == 0:
+    #         for i in self.action_set:
+    #             # if his fitness is worse then do not bother
+    #             if len(winnerSet) == 0 or (fitness - select_tolerance) <= self.pop_set[i].fitness/self.pop_set[i].numerosity:
+    #                 for j in range(0, self.pop_set[i].numerosity):
+    #                     if crandom.random() < cons.theta_sel:
+    #                         if len(winnerSet) == 0:
+    #                             # the first one
+    #                             winnerSet.append(i)
+    #                             fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
+    #
+    #                         else:
+    #                             if (fitness + select_tolerance) > self.pop_set[i].fitness/self.pop_set[i].numerosity:
+    #                                 winnerSet.append(i)
+    #
+    #                             else:
+    #                                 winnerSet = []
+    #                                 winnerSet.append(i)
+    #                                 fitness = self.pop_set[i].fitness/self.pop_set[i].numerosity
+    #                         break
+    #
+    #         # print winnerSet
+    #     if len(winnerSet) > 1:
+    #         size = random.randint(0, len(winnerSet) - 1)
+    #         return winnerSet[size]
+    #     return winnerSet[0]
 
         #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # SUBSUMPTION METHODS
@@ -419,7 +419,7 @@ class ClassifierSet:
                 choices.append(ref)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
-            choicep = int(random.random()*len(choices))
+            choicep = int(crandom.random()*len(choices))
             self.pop_set[choices[choicep]].updateNumerosity(1)
             self.micro_size += 1
             return
@@ -433,7 +433,7 @@ class ClassifierSet:
         for ref in self.action_set:
             cl = self.pop_set[ref]
             if cl.isPossibleSubsumer():
-                if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and random.random() < 0.5 ) ):
+                if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and crandom.random() < 0.5 ) ):
                     subsumer = cl
 
         if subsumer != None: #If a subsumer was found, subsume all more specific classifiers in the match set

@@ -11,7 +11,7 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 
 #Import Required Modules--------------
-import random
+import crandom
 
 from xcs_constants import *
 
@@ -56,7 +56,7 @@ class Prediction:
     def decide(self, explore=True):
         """ Returns prediction decision. """
         if explore:
-            self.decision = random.choice( cons.env.format_data.action_list )
+            self.decision = crandom.choice( cons.env.format_data.action_list )
         else:
             self.decision = cons.env.format_data.action_list[0]
             for action in cons.env.format_data.action_list:
