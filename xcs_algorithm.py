@@ -73,8 +73,6 @@ class XCS:
         print("Beginning XCS learning iterations.")
         print("------------------------------------------------------------------------------------------------------------------------------------------------------")
         explorer = 1
-        print(self.iteration)
-        print(explorer)
         #-------------------------------------------------------
         # MAJOR LEARNING LOOP
         #-------------------------------------------------------
@@ -83,7 +81,6 @@ class XCS:
             # GET NEW INSTANCE AND RUN A LEARNING ITERATION
             # -------------------------------------------------------
             state_action = cons.env.getTrainInstance()
-
             if explorer == 1:
                 self.runIteration( state_action )
             else:
@@ -96,6 +93,22 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
+            test_iter = 27
+            if self.iteration == test_iter and explorer == 0:
+                correctness=""
+                for i in range(test_iter):
+                    correctness += str(self.tracked_results[i])
+                print(correctness)
+                for i in reversed(range(len(self.population.pop_set))):
+                    cli = self.population.pop_set[i]
+                    cli_cond = ""
+                    for j in range( cons.env.format_data.numb_attributes ):
+                        if j in cli.specified_attributes:
+                            cli_cond += cli.condition[cli.specified_attributes.index(j)]
+                        else:
+                            cli_cond += '#'
+                    print(str(i+1)+','+cli_cond+'|'+str(cli.action)+',prediction '+str(int(cli.prediction))+',error '+str(int(cli.error))+',fitness '+str(int(cli.fitness))+',experience '+str(cli.action_cnt))
+                print('Accuracy '+str(sum(self.tracked_results)/test_iter)+',micro size '+str(self.population.micro_size))
             if self.iteration % cons.tracking_frequency == 0 and explorer == 0:
                 self.population.runPopAveEval()
                 if cons.extra_estimation:

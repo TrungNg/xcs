@@ -34,7 +34,6 @@ def getOptions( argv ):
     if 'seed' in opts:
         cons.random_seed = int( opts['seed'] )
 
-
 helpstr = """Failed attempt to run e-LCS.  Please ensure that a configuration file giving all run parameters has been specified."""
 
 #Specify the name and file path for the configuration file.
@@ -50,9 +49,9 @@ getOptions( argv )
 
 #Set random seed if specified.-----------------------------------------------
 if cons.use_seed:
-    crandom.seed(cons.random_seed)
+    crandom.setSeed(cons.random_seed)
 else:
-    crandom.seed(datetime.now())
+    crandom.setSeed(datetime.now())
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 if cons.online_data_generator:

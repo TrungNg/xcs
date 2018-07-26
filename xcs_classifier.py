@@ -68,7 +68,7 @@ class Classifier:
         #-------------------------------------------------------
         while len(self.specified_attributes) < 1:
             for att in range(len(state)):
-                if crandom.random() < cons.p_spec and state[att] != cons.missing_label:
+                if crandom.random() >= 1 - cons.p_spec and state[att] != cons.missing_label:
                     self.specified_attributes.append(att)
                     self.condition.append( state[att] )
 
@@ -286,7 +286,7 @@ class Classifier:
         if crandom.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
-            new_action = crandom.sample(action_list,1)
+            new_action = crandom.choice(action_list)
             self.action = new_action[0]
             changed= True
         return changed
@@ -402,10 +402,10 @@ class Classifier:
 
 
     def updateFitness(self):
-        if self.action_cnt >= 1.0 / cons.beta:
-            self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
-        else:
-            self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
+        # if self.action_cnt >= 1.0 / cons.beta:
+        self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
+        # else:
+        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
 
 
     def updateActionSetSize(self, actionset_size):

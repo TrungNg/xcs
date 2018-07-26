@@ -104,26 +104,23 @@ class ClassifierSet:
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
         cons.timer.stopTimeMatching()
-        if len( matched_phenotype_list ) >= cons.theta_mna:
-            do_covering = False
         #-------------------------------------------------------
         # COVERING
         #-------------------------------------------------------
-        while do_covering:
+        while len(matched_phenotype_list) < cons.theta_mna:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
-            new_cl = Classifier(iteration, state, crandom.choice( missing_actions ),set_size+1)
-            set_size += 1
-            self.addClassifierToPopulation( new_cl )
-            self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
-            matched_phenotype_list.append( new_cl.action )
+            for action in missing_actions:
+                new_cl = Classifier(iteration, state, action, set_size+1)
+                set_size += 1
+                self.addClassifierToPopulation( new_cl )
+                self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
+                matched_phenotype_list.append( new_cl.action )
             if len( matched_phenotype_list ) >= cons.theta_mna:
                 self.deletion()
                 matched_phenotype_list = []
                 for i in self.match_set:
                     if self.pop_set[i].action not in matched_phenotype_list:
                         matched_phenotype_list.append(self.pop_set[i].action)
-                if len(matched_phenotype_list) >= cons.theta_mna:
-                    do_covering = False
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
@@ -258,39 +255,35 @@ class ClassifierSet:
             cl2 = Classifier(clP1, iteration)
         else:
             cl2 = Classifier(clP2, iteration)
-
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
         #-------------------------------------------------------
         if not cl1.equals(cl2) and crandom.random() < cons.chi:
             if cons.crossover_method == 'uniform':
-                changed = cl1.uniformCrossover(cl2)
+                cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
-                changed = cl1.twoPointCrossover(cl2)
-
+                cl1.twoPointCrossover(cl2)
         #-------------------------------------------------------
         # INITIALIZE KEY OFFSPRING PARAMETERS
         #-------------------------------------------------------
-        if changed:
+        #if changed:
             cl1.setPrediction((cl1.prediction + cl2.prediction)/2)
             cl1.setError((cl1.error + cl2.error)/2.0)
-            cl1.setFitness(cons.fitness_reduction * (cl1.fitness + cl2.fitness)/2.0)
+            cl1.setFitness((cl1.fitness + cl2.fitness)/2.0)
             cl2.setPrediction(cl1.prediction)
             cl2.setError(cl1.error)
             cl2.setFitness(cl1.fitness)
-
-        cl1.setFitness(cons.fitness_reduction * cl1.fitness)
-        cl2.setFitness(cons.fitness_reduction * cl2.fitness)
         #-------------------------------------------------------
         # MUTATION OPERATOR
         #-------------------------------------------------------
-        nowchanged = cl1.Mutation(state)
-        howaboutnow = cl2.Mutation(state)
+        cl1.Mutation(state)
+        cl2.Mutation(state)
         #-------------------------------------------------------
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
-        if changed or nowchanged or howaboutnow:
-            self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2) #Subsumption
+        cl1.setFitness( cons.fitness_reduction * cl1.fitness )
+        cl2.setFitness( cons.fitness_reduction * cl2.fitness )
+        self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2) #Subsumption
         self.deletion()
 
 
@@ -301,32 +294,24 @@ class ClassifierSet:
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for actionSet set or 'niche' selection.
         set_list = self.action_set[:]
+        selected_list = [None, None]
+        count = 0 #Pick two parents
+        #-----------------------------------------------
+        while count < 2:
+            fit_sum = self.getFitnessSum(set_list)
 
-        if len(set_list) > 2:
-            selected_list = [None, None]
-            count = 0 #Pick two parents
-            #-----------------------------------------------
-            while count < 2:
-                fit_sum = self.getFitnessSum(set_list)
+            choice_point = crandom.random() * fit_sum
+            i=0
+            sum_cl = self.pop_set[set_list[i]].fitness
+            while choice_point > sum_cl:
+                i=i+1
+                sum_cl += self.pop_set[set_list[i]].fitness
 
-                choice_point = crandom.random() * fit_sum
-                i=0
-                sum_cl = self.pop_set[set_list[i]].fitness
-                while choice_point > sum_cl:
-                    i=i+1
-                    sum_cl += self.pop_set[set_list[i]].fitness
-
-                selected_list[count] = self.pop_set[set_list[i]]
+            selected_list[count] = self.pop_set[set_list[i]]
+            if cons.distinct_parents and len(set_list) > 1:
                 set_list.pop(i)
-                count += 1
-            #-----------------------------------------------
-        elif len(set_list) == 2:
-            selected_list = [self.pop_set[set_list[0]],self.pop_set[set_list[1]]]
-        elif len(set_list) == 1:
-            selected_list = [self.pop_set[set_list[0]],self.pop_set[set_list[0]]]
-        else:
-            print("ClassifierSet: Error in parent selection.")
-
+            count += 1
+        #-----------------------------------------------
         return selected_list
 
     def selectClassifierT(self):
@@ -348,7 +333,7 @@ class ClassifierSet:
                     best_cl = j
             selected_list[count] = self.pop_set[ best_cl ]
             count += 1
-            if cons.tournament_distinct_parents and len( set_list ) > 1:
+            if cons.distinct_parents and len( set_list ) > 1:
                 set_list.remove( best_cl )
 
         return selected_list
@@ -527,8 +512,7 @@ class ClassifierSet:
     def getFitnessSum(self, cl_set):
         """ Returns the sum of the fitnesses of all classifiers in the set. """
         sum_cl = 0.0
-        for i in range(len(cl_set)):
-            ref = cl_set[i]
+        for ref in cl_set:
             sum_cl += self.pop_set[ref].fitness
         return sum_cl
 
