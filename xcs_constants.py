@@ -17,7 +17,7 @@ class Constants:
         # Major Run Parameters -----------------------------------------------------------------------------------------
         self.online_data_generator = False if par[ 'onlineProblem' ].lower()=='false' else True     # Saved as Boolean
         if self.online_data_generator == True:
-            self.problem_type = par[ 'onlineProblem' ]
+            self.problem_name = par[ 'onlineProblem' ]
             sizes = par[ 'problemSizes' ].split( '.' )
             self.problem_sizes = [ 0 ] * 3
             for i in range( len( sizes ) ):
