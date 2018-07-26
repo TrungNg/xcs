@@ -26,26 +26,21 @@ class Online_Environment:
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
 
-
     def getTrainInstance(self):
         """ Returns the a new training instance. """
         return self.format_data.generateInstance()
-
 
     def getTestInstance(self):
         """ Returns the a new testing instance. """
         return self.format_data.generateInstance()
 
-
     def resetDataRef(self, _):
         """ Do nothing. """
         return
 
-
     def startEvaluationMode(self):
         """ Do nothing. """
         return
-
 
     def stopEvaluationMode(self):
         """ Do nothing."""

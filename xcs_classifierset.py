@@ -80,9 +80,7 @@ class ClassifierSet:
     def makeMatchSet(self, state, iteration, pool=None):
         """ Constructs a match set from the population. Covering is initiated if the match set is empty or total prediction of rules in match set is too low. """
         #Initial values
-        do_covering = True # Covering check: Twofold (1)checks that a match is present, and (2) that total Prediction in Match Set is greater than a threshold compared to mean preadiction.
         matched_phenotype_list = []
-        set_size = 0
         self.current_instance = state
         #-------------------------------------------------------
         # MATCHING
@@ -100,7 +98,6 @@ class ClassifierSet:
                 cl = self.pop_set[i]                            # One classifier at a time
                 if cl.match( state ):                             # Check for match
                     self.match_set.append( i )                  # If match - add classifier to match set
-                    set_size += cl.numerosity
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
         cons.timer.stopTimeMatching()
@@ -110,8 +107,7 @@ class ClassifierSet:
         while len(matched_phenotype_list) < cons.theta_mna:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
             for action in missing_actions:
-                new_cl = Classifier(iteration, state, action, set_size+1)
-                set_size += 1
+                new_cl = Classifier( iteration, state, action )
                 self.addClassifierToPopulation( new_cl )
                 self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
                 matched_phenotype_list.append( new_cl.action )
@@ -263,9 +259,9 @@ class ClassifierSet:
                 cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
                 cl1.twoPointCrossover(cl2)
-        #-------------------------------------------------------
-        # INITIALIZE KEY OFFSPRING PARAMETERS
-        #-------------------------------------------------------
+            #-------------------------------------------------------
+            # INITIALIZE KEY OFFSPRING PARAMETERS
+            #-------------------------------------------------------
         #if changed:
             cl1.setPrediction((cl1.prediction + cl2.prediction)/2)
             cl1.setError((cl1.error + cl2.error)/2.0)

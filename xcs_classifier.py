@@ -18,7 +18,7 @@ import math
 #--------------------------------------
 
 class Classifier:
-    def __init__(self,a=None,b=None,c=None,d=None):
+    def __init__(self,a=None,b=None,c=None):
         #Major Parameters --------------------------------------------------
         self.specified_attributes = []      # Attribute Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
         self.condition = []                 # States of Attributes Specified in classifier: Similar to Bacardit 2009 - ALKR + GABIL, continuous and discrete rule representation
@@ -41,7 +41,7 @@ class Classifier:
         self.action_cnt = 0                 # The total number of times this classifier was chosen in action set
 
         if isinstance(b,list):
-            self.classifierCovering(a,b,c,d)
+            self.classifierCovering(a,b,c)
         elif isinstance(a,Classifier):
             self.classifierCopy(a)
         elif isinstance(a,list) and b == None:
@@ -52,13 +52,12 @@ class Classifier:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # CLASSIFIER CONSTRUCTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def classifierCovering(self, iteration, state, action, set_size):
+    def classifierCovering(self, iteration, state, action):
         """ Makes a new classifier when the covering mechanism is triggered.  The new classifier will match the current training instance.
         Covering will NOT produce a default rule (i.e. a rule with a completely general condition). """
         #Initialize new classifier parameters----------
         self.ga_timestamp = iteration
         self.init_timestamp = iteration
-        self.avg_actionset_size = set_size
         if action != None:
             self.action = action
         else:
@@ -67,9 +66,9 @@ class Classifier:
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
         while len(self.specified_attributes) < 1:
-            for att in range(len(state)):
-                if crandom.random() >= 1 - cons.p_spec and state[att] != cons.missing_label:
-                    self.specified_attributes.append(att)
+            for att in range( cons.env.format_data.numb_attributes ):
+                if crandom.random() < cons.p_spec and state[att] != cons.missing_label:
+                    self.specified_attributes.append( att )
                     self.condition.append( state[att] )
 
 
@@ -402,10 +401,10 @@ class Classifier:
 
 
     def updateFitness(self):
-        # if self.action_cnt >= 1.0 / cons.beta:
-        self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
-        # else:
-        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
+        if self.action_cnt >= 1.0 / cons.beta:
+            self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
+        else:
+            self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
 
 
     def updateActionSetSize(self, actionset_size):
