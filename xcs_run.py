@@ -55,7 +55,7 @@ else:
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 if cons.online_data_generator:
-    env = Online_Environment( cons.problem_type, cons.problem_sizes )
+    env = Online_Environment( cons.problem_name, cons.problem_sizes )
 else:
     env = Offline_Environment()
 cons.referenceEnv( env ) #Passes the environment to 'Constants' (cons) so that it can be easily accessed from anywhere within the code.

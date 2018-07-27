@@ -17,7 +17,7 @@ class Constants:
         # Major Run Parameters -----------------------------------------------------------------------------------------
         self.online_data_generator = False if par[ 'onlineProblem' ].lower()=='false' else True     # Saved as Boolean
         if self.online_data_generator == True:
-            self.problem_type = par[ 'onlineProblem' ]
+            self.problem_name = par[ 'onlineProblem' ]
             sizes = par[ 'problemSizes' ].split( '.' )
             self.problem_sizes = [ 0 ] * 3
             for i in range( len( sizes ) ):
@@ -25,8 +25,8 @@ class Constants:
         self.multiprocessing = bool( int( par['multiprocessing'] ) )
         self.train_file = par['trainFile']                                      #Saved as text
         self.test_file = par['testFile']                                        #Saved as text
-        self.original_out_file = str(par['outFileName'])                        #Saved as text
-        self.out_file = str(par['outFileName'])+'_XCS'                          #Saved as text
+        self.outfile_dir = str(par['outFileDir'])  # Saved as text
+        self.out_file = self.outfile_dir + 'XCS_' + self.problem_name + "_" + str(self.problem_sizes)  # Saved as text
         self.checkpoint_iter = par['learningIterations']                        #Saved as text
         self.extra_estimation = bool( int( par['extraEstimationRun'] ) )
         self.N = int(par['N'])                                                  #Saved as integer

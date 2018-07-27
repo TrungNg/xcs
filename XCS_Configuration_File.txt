@@ -8,7 +8,7 @@ problemSizes=6									# Define the sizes of the problem as the data generator (
 ------------------------------------------------
 trainFile=Demo_Datasets/11MajorityOn_Data_Complete.txt		# Path/FileName of training dataset
 testFile=None									# Path/FileName of testing dataset.  If no testing data available or desired, put 'None'.
-outFileName=Local_Output/ExampleRun				# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
+outFileDir=Local_Output/						# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
 ------------------------------------------------
 multiprocessing=0
 learningIterations=10000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)

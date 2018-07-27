@@ -52,7 +52,7 @@ cpdef int randint(int a, int b):
 # _Q = 127773 # constant for the random number generator (=_M/_A).
 # _R = 2836 # constant for the random number generator (=_M mod _A).
 #
-# def setSeed( new_seed ):
+# def seed( new_seed ):
 #     """ """
 #     global seed
 #     seed = new_seed
