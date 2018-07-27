@@ -22,6 +22,8 @@ class Online_Environment:
         self.data_ref = 0
         self.saved_dat_ref = 0
         options={ 'multiplexer':MulplexerGenerator,
+                  'hidden_multiplexer': HiddenMultiplexer,
+                  'majorityon': MajorityOnGenerator,
                   'parity_countone':ParityCountOne }
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
@@ -70,22 +72,18 @@ class MulplexerGenerator( DataGenerator ):
             self.headers.append( 'B' + str( i - self.address_size ) )
         super().__init__( sizes )
 
-
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
         condition = []
         #Generate random boolean string
         for _ in range( self.numb_attributes ):
             condition.append( str( crandom.randint( 0, 1 ) ) )
-
         gates=""
         for j in range( self.address_size ):
             gates += condition[ j ]
         gates_decimal = int( gates, 2 )
         output = condition[ self.address_size + gates_decimal ]
-
         return [ condition, output ]
-
 
     def _findAddressSize(self, num_bits):
         for i in range( 1000 ):
@@ -94,6 +92,88 @@ class MulplexerGenerator( DataGenerator ):
             if i + 2**i > num_bits:
                 break
         return None
+
+
+class HiddenMultiplexer( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
+        self.parity_size = sizes[ 1 ]
+        self.multiplexer_size = sizes[ 2 ]
+        self.multiplexer_addr_size = self._findAddressSize( sizes[ 2 ] )
+        self.headers = []
+        if self.parity_size * self.multiplexer_size != sizes[ 0 ]:
+            raise ValueError( "HiddenMultiplexer.__init__() failed because of inappropriate sizes provided." )
+        for i in range( self.multiplexer_size ):
+            if i < self.multiplexer_addr_size:
+                prefix = 'A' + str( i )
+            else:
+                prefix = 'B' + str( i - self.multiplexer_addr_size )
+            for j in range( self.parity_size ):
+                self.headers.append( prefix + str( j ) )
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            condition.append( str( crandom.randint( 0, 1 ) ) )
+        gates=""
+        for i in range( self.multiplexer_addr_size ):
+            count = 0
+            for j in range( self.parity_size ):
+                if condition[ i * self.parity_size + j ] == '1':
+                    count += 1
+            if count % 2 == 0:
+                count = 0
+            else:
+                count = 1
+            gates += str( count )
+        gates_decimal = int( gates, 2 )
+        output_parity_block = ( self.multiplexer_addr_size + gates_decimal ) * self.parity_size
+        count = 0
+        for i in range( self.parity_size ):
+            if condition[ output_parity_block + i ] == '1':
+                count += 1
+        if count % 2 == 0:
+            output = '0'
+        else:
+            output = '1'
+        return [ condition, output ]
+
+    def _findAddressSize(self, num_bits):
+        for i in range( 1000 ):
+            if i + 2**i == num_bits:
+                return i
+            if i + 2**i > num_bits:
+                break
+        return None
+
+
+class MajorityOnGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
+        self.headers = []
+        for i in range( sizes[0] ):
+            self.headers.append( 'B' + str(i) )
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            condition.append( str( crandom.randint( 0, 1 ) ) )
+        #Find output for generated condition
+        counts = 0
+        for att in condition:
+            if att == '1':
+                counts += 1
+        if counts > self.numb_attributes / 2:
+            output = '1'
+        else:
+            output = '0'
+        return [ condition, output ]
 
 
 class ParityCountOne( DataGenerator ):
@@ -110,7 +190,6 @@ class ParityCountOne( DataGenerator ):
             for j in range( self.parity_size ):
                 self.headers.append( prefix + str( j ) )
         super().__init__( sizes )
-
 
     def generateInstance(self):
         """ Generate and return new instance with correct output. """
