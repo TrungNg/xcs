@@ -49,9 +49,9 @@ getOptions( argv )
 
 #Set random seed if specified.-----------------------------------------------
 if cons.use_seed:
-    crandom.setSeed(cons.random_seed)
+    crandom.seed(cons.random_seed)
 else:
-    crandom.setSeed(datetime.now())
+    crandom.seed(datetime.now())
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 if cons.online_data_generator:

@@ -12,13 +12,11 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 #Import Required Modules--------------
 import crandom
-
 from xcs_constants import *
-
-
 #-------------------------------------
+
 class Prediction:
-    def __init__(self, population, is_testing = False):
+    def __init__(self, population):
         """ Constructs the voting array and determines the prediction decision. """
         self.decision = None
         self.prediction = {}
