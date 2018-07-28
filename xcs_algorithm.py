@@ -244,7 +244,7 @@ class XCS:
                 state_action = cons.env.getTestInstance()
             #-----------------------------------------------------------------------------
             self.population.makeEvalMatchSet( state_action[0] )
-            prediction = Prediction( self.population, True )
+            prediction = Prediction( self.population )
             selected_action = prediction.decide( exploring=False )
             #-----------------------------------------------------------------------------
 
