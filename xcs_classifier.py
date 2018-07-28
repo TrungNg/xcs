@@ -401,10 +401,10 @@ class Classifier:
 
 
     def updateFitness(self):
-        if self.action_cnt >= 1.0 / cons.beta:
-            self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
-        else:
-            self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
+        # if self.action_cnt >= 1.0 / cons.beta:
+        self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
+        # else:
+        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
 
 
     def updateActionSetSize(self, actionset_size):
