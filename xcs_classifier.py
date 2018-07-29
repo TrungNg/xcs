@@ -67,7 +67,7 @@ class Classifier:
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
         for att in range(len(state)):
-            if ( not crandom.random() < cons.p_spec ) and state[att] != cons.missing_label:
+            if ( not crandom.random() < 1-cons.p_spec ) and state[att] != cons.missing_label:
                 self.specified_attributes.append(att)
                 self.condition.append( state[att] )
 
