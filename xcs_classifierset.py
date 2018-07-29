@@ -256,30 +256,28 @@ class ClassifierSet:
         #-------------------------------------------------------
         if not cl1.equals(cl2) and crandom.random() < cons.chi:
             if cons.crossover_method == 'uniform':
-                cl1.uniformCrossover(cl2)
+                changed = cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
-                cl1.twoPointCrossover(cl2)
-            #-------------------------------------------------------
-            # INITIALIZE KEY OFFSPRING PARAMETERS
-            #-------------------------------------------------------
-        #if changed:
-            cl1.setPrediction((cl1.prediction + cl2.prediction)/2)
-            cl1.setError((cl1.error + cl2.error)/2.0)
-            cl1.setFitness((cl1.fitness + cl2.fitness)/2.0)
-            cl2.setPrediction(cl1.prediction)
-            cl2.setError(cl1.error)
-            cl2.setFitness(cl1.fitness)
+                changed = cl1.twoPointCrossover(cl2)
         #-------------------------------------------------------
         # MUTATION OPERATOR
         #-------------------------------------------------------
-        cl1.Mutation(state)
-        cl2.Mutation(state)
+        mutate_change1 = cl1.Mutation(state)
+        mutate_change2 = cl2.Mutation(state)
+        #-------------------------------------------------------
+        # INITIALIZE KEY OFFSPRING PARAMETERS
+        #-------------------------------------------------------
+        if changed or mutate_change1 or mutate_change2:
+            cl1.setPrediction( (cl1.prediction + cl2.prediction)/2 )
+            cl1.setError( (cl1.error + cl2.error)/2.0 )
+            cl1.setFitness( cons.fitness_reduction * (cl1.fitness + cl2.fitness)/2.0 )
+            cl2.setPrediction( cl1.prediction )
+            cl2.setError( cl1.error )
+            cl2.setFitness( cl1.fitness )
         #-------------------------------------------------------
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
-        cl1.setFitness( cons.fitness_reduction * cl1.fitness )
-        cl2.setFitness( cons.fitness_reduction * cl2.fitness )
-        self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2) #Subsumption
+        self.insertDiscoveredClassifiers( cl1, cl2, clP1, clP2 ) #Subsumption
         self.deletion()
 
 

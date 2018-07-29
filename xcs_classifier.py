@@ -65,11 +65,10 @@ class Classifier:
         #-------------------------------------------------------
         # GENERATE MATCHING CONDITION
         #-------------------------------------------------------
-        while len(self.specified_attributes) < 1:
-            for att in range( cons.env.format_data.numb_attributes ):
-                if crandom.random() < cons.p_spec and state[att] != cons.missing_label:
-                    self.specified_attributes.append( att )
-                    self.condition.append( state[att] )
+        for att in range( cons.env.format_data.numb_attributes ):
+            if crandom.random() < cons.p_spec and state[att] != cons.missing_label:
+                self.specified_attributes.append( att )
+                self.condition.append( state[att] )
 
 
     def classifierCopy(self, old_cl):
