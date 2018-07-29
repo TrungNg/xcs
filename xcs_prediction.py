@@ -111,6 +111,8 @@ class Prediction:
                     if self.tiebreak_numerosity[action] == max_numerosity:
                         new_best_action.append(action)
                 # -----------------------------------------------------------------------
-                if len(new_best_action) > 1:  # still a tie
-                    self.decision = crandom.choice( new_best_action )
+                if len(new_best_action) == 1:
+                    self.decision = new_best_action[0]
+                else:  # still a tie
+                    self.decision = crandom.choice(new_best_action)
         return self.decision
