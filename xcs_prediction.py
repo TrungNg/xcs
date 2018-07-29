@@ -54,7 +54,7 @@ class Prediction:
     def getPredictedPayoff(self):
         return self.prediction[ self.decision ]
 
-    def decide2(self, exploring=True):
+    def decide(self, exploring=True):
         """ Returns prediction decision. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
@@ -74,7 +74,7 @@ class Prediction:
                 self.decision = crandom.choice( best_set )
         return self.decision
 
-    def decide(self, exploring=True):
+    def decide2(self, exploring=True):
         """ Returns prediction decision. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
