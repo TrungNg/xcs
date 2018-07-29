@@ -68,7 +68,7 @@ class Classifier:
         #-------------------------------------------------------
         while len(self.specified_attributes) < 1:
             for att in range(len(state)):
-                if crandom.random() >= 1 - cons.p_spec and state[att] != cons.missing_label:
+                if ( not crandom.random() < cons.p_spec ) and state[att] != cons.missing_label:
                     self.specified_attributes.append(att)
                     self.condition.append( state[att] )
 
