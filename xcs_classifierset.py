@@ -478,7 +478,7 @@ class ClassifierSet:
             self.pop_set[ref].updateXCSParameters( reward )
             accuracy_sum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
         for ref in self.action_set:
-            self.pop_set[ref].setAccuracy( 1000 * self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
+            self.pop_set[ref].setAccuracy( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
             self.pop_set[ref].updateFitness()
 
 

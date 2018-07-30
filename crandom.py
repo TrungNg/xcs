@@ -61,7 +61,7 @@ cpdef int randint(int a, int b):
 #     global seed
 #     hi   = int( seed / _Q )
 #     lo   = int( seed % _Q )
-#     test = int( _A*lo - _R*hi )
+#     test = _A*lo - _R*hi
 #     if (test>0):
 #         seed = test
 #     else:
