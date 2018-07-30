@@ -46,7 +46,7 @@ class Constants:
         self.tracking_frequency = int(par['trackingFrequency'])                 #Saved as integer
 
         # Supervised Learning Parameters -------------------------------------------------------------------------------
-        self.nu = int(par['nu'])                                                #Saved as integer
+        self.nu = float(par['nu'])                                              #Saved as integer
         self.chi = float(par['chi'])                                            #Saved as float
         self.phi = float(par['phi'])                                            #Saved as float
         self.mu = float(par['mu'])                                              #Saved as float

@@ -53,7 +53,18 @@ class Prediction:
     def getPredictedPayoff(self):
         return self.prediction[ self.decision ]
 
-    def decide1(self, exploring=True):
+    def decide(self, exploring=True):
+        """ Returns prediction decision. """
+        if exploring:
+            self.decision = crandom.choice( cons.env.format_data.action_list )
+        else:
+            self.decision = cons.env.format_data.action_list[0]
+            for action in cons.env.format_data.action_list:
+                if self.prediction[ action ] > self.prediction[ self.decision ]:
+                    self.decision = action
+        return self.decision
+
+    def decide2(self, exploring=True):
         """ Returns prediction decision. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
@@ -73,18 +84,7 @@ class Prediction:
                 self.decision = crandom.choice( best_set )
         return self.decision
 
-    def decide2(self, exploring=True):
-        """ Returns prediction decision. """
-        if exploring:
-            self.decision = crandom.choice( cons.env.format_data.action_list )
-        else:
-            self.decision = cons.env.format_data.action_list[0]
-            for action in cons.env.format_data.action_list:
-                if self.prediction[ action ] > self.prediction[ self.decision ]:
-                    self.decision = action
-        return self.decision
-
-    def decide(self, exploring=True):
+    def decide3(self, exploring=True):
         """ Returns prediction decision. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
