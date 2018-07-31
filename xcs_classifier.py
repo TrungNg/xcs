@@ -267,16 +267,14 @@ class Classifier:
         #-------------------------------------------------------
         # MUTATE PHENOTYPE
         #-------------------------------------------------------
-        action_changed = False
         if crandom.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
             new_action = crandom.choice(action_list)
             self.action = new_action[0]
-            action_changed= True
+            changed = True
 
-        if changed or action_changed:
-            return True
+        return changed
 
 
     def discreteActionMutation(self):
@@ -358,11 +356,11 @@ class Classifier:
     def getDelProb(self, avg_fitness):
         """  Returns the vote for deletion of the classifier. """
         self.delete_vote = self.avg_actionset_size * self.numerosity
-        if self.action_cnt > cons.theta_del and self.fitness < cons.delta*avg_fitness * self.numerosity:
+        if self.action_cnt > cons.theta_del and self.fitness/self.numerosity < cons.delta*avg_fitness:
             if self.fitness > 0.0:
-                self.delete_vote *= avg_fitness * self.numerosity / self.fitness
+                self.delete_vote *= avg_fitness / ( self.fitness/float(self.numerosity) )
             else:
-                self.delete_vote *= avg_fitness / (cons.init_fit / self.numerosity)
+                self.delete_vote *= avg_fitness / ( cons.init_fit/self.numerosity )
         return self.delete_vote
 
 
@@ -397,7 +395,7 @@ class Classifier:
         if self.error <= cons.offset_epsilon:
             self.accuracy = 1
         else:
-            self.accuracy = cons.alpha * ( ( cons.offset_epsilon / self.error ) ** cons.nu ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
+            self.accuracy = cons.alpha * ( ( self.error/cons.offset_epsilon ) ** (-cons.nu) ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
 
 
     def updateFitness(self):

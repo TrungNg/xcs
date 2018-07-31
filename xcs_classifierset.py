@@ -245,8 +245,8 @@ class ClassifierSet:
             clP2 = self.pop_set[ clP2_index ]
             #print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
-        clP1.updateGACount()
-        clP2.updateGACount()
+        # clP1.updateGACount()
+        # clP2.updateGACount()
         #-------------------------------------------------------
         # INITIALIZE OFFSPRING
         #-------------------------------------------------------
@@ -258,7 +258,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
         #-------------------------------------------------------
-        if not cl1.equals(cl2) and crandom.random() < cons.chi:
+        if crandom.random() < cons.chi:
             if cons.crossover_method == 'uniform':
                 changed = cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
