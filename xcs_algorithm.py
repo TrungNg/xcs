@@ -93,7 +93,7 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
-            test_iter = 47
+            test_iter = 87
             if self.iteration == test_iter and explorer == 0:
                 correctness=""
                 for i in range(test_iter):

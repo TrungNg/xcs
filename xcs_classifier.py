@@ -389,8 +389,8 @@ class Classifier:
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
         payoff = reward
         if self.action_cnt >= 1.0 / cons.beta:
-            self.error = self.error + cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
-            self.prediction = self.prediction + cons.beta * ( payoff - self.prediction )
+            self.error += cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
+            self.prediction += cons.beta * ( payoff - self.prediction )
         else:
             self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
             self.prediction = ( self.prediction * ( self.action_cnt - 1 ) + payoff ) / self.action_cnt
@@ -402,7 +402,7 @@ class Classifier:
 
     def updateFitness(self):
         # if self.action_cnt >= 1.0 / cons.beta:
-        self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
+        self.fitness += cons.beta * ( self.accuracy - self.fitness )
         # else:
         #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
 
