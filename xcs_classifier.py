@@ -269,9 +269,11 @@ class Classifier:
         #-------------------------------------------------------
         if crandom.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
-            action_list.remove(self.action)
+            #action_list.remove(self.action)
             new_action = crandom.choice(action_list)
-            self.action = new_action[0]
+            while new_action == self.action:
+                new_action = crandom.choice(action_list)
+            self.action = new_action
             changed = True
 
         return changed

@@ -113,7 +113,7 @@ class ClassifierSet:
                 new_cl = Classifier(iteration, state, action, set_size+1)
                 set_size += 1
                 self.addClassifierToPopulation( new_cl )
-                self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
+                self.match_set.insert( 0, len(self.pop_set)-1 )  # Add created classifier to match set
                 matched_phenotype_list.append( new_cl.action )
             if len( matched_phenotype_list ) >= cons.theta_mna:
                 self.deletion()
@@ -124,20 +124,12 @@ class ClassifierSet:
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
-        for i in range(len(self.match_set)):
-            ref = self.match_set[i]
+        for ref in self.match_set:
             #-------------------------------------------------------
             # DISCRETE PHENOTYPE
             #-------------------------------------------------------
-            if cons.env.format_data.discrete_action:
-                if self.pop_set[ref].action == selected_action:
-                    self.action_set.append(ref)
-            #-------------------------------------------------------
-            # CONTINUOUS PHENOTYPE
-            #-------------------------------------------------------
-            else:
-                if float(selected_action) <= float(self.pop_set[ref].action[1]) and float(selected_action) >= float(self.pop_set[ref].action[0]):
-                    self.action_set.append(ref)
+            if self.pop_set[ref].action == selected_action:
+                self.action_set.append(ref)
 
     def makeEvalMatchSet(self, state):
         """ Constructs a match set for evaluation purposes which does not activate either covering or deletion. """
@@ -164,7 +156,7 @@ class ClassifierSet:
         #Calculate total wheel size------------------------------
         vote_sum = 0.0
         vote_list = []
-        for cl in self.pop_set:
+        for cl in reversed( self.pop_set ):
             vote = cl.getDelProb(mean_fitness)
             vote_sum += vote
             vote_list.append(vote)
@@ -172,16 +164,18 @@ class ClassifierSet:
         choice_point = vote_sum * crandom.random() #Determine the choice point
         new_sum = 0.0
         for i in range(len(vote_list)):
-            cl = self.pop_set[i]
             new_sum = new_sum + vote_list[i]
             if new_sum > choice_point: #Select classifier for deletion
+                id = len(vote_list)-1-i
+                cl = self.pop_set[ id ]
                 #Delete classifier----------------------------------
                 cl.updateNumerosity(-1)
                 self.micro_size -= 1
                 if cl.numerosity < 1: # When all micro-classifiers for a given classifier have been depleted.
-                    self.removeMacroClassifier(i)
-                    self.deleteFromMatchSet(i)
-                    self.deleteFromActionSet(i)
+                    self.removeMacroClassifier(id)
+                    if self.match_set != []:
+                        self.deleteFromMatchSet(id)
+                        self.deleteFromActionSet(id)
                 return
         print("ClassifierSet: No eligible rules found for deletion in deleteFromPopulation.")
         return
@@ -205,7 +199,7 @@ class ClassifierSet:
         if cl_ref in self.action_set:
             self.action_set.remove(cl_ref)
 
-        #Update match set reference list--------
+        #Update action set reference list--------
         for j in range(len(self.action_set)):
             ref = self.action_set[j]
             if ref > cl_ref:
@@ -282,6 +276,7 @@ class ClassifierSet:
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         self.insertDiscoveredClassifiers(cl1, cl2, clP1, clP2) #Subsumption
+        self.clearSets()
         self.deletion()
 
 
@@ -291,7 +286,7 @@ class ClassifierSet:
     def selectClassifierRW(self):
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for actionSet set or 'niche' selection.
-        set_list = self.action_set[:]
+        set_list = list(reversed(self.action_set[:]))
         selected_list = [None, None]
         count = 0 #Pick two parents
         #-----------------------------------------------
@@ -314,9 +309,9 @@ class ClassifierSet:
 
     def selectClassifierT(self):
         """  Selects parents using tournament selection according to the fitness of the classifiers. """
+        set_list = list(reversed(self.action_set[:])) #actionSet set is a list of reference IDs
         selected_list = [None, None]
         count = 0
-        set_list = self.action_set[:] #actionSet set is a list of reference IDs
 
         while count < 2:
             tournament_size = int(len(set_list)*cons.theta_sel)
