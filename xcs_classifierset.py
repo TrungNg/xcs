@@ -120,20 +120,9 @@ class ClassifierSet:
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
-        for i in range(len(self.match_set)):
-            ref = self.match_set[i]
-            #-------------------------------------------------------
-            # DISCRETE PHENOTYPE
-            #-------------------------------------------------------
-            if cons.env.format_data.discrete_action:
-                if self.pop_set[ref].action == selected_action:
-                    self.action_set.append(ref)
-            #-------------------------------------------------------
-            # CONTINUOUS PHENOTYPE
-            #-------------------------------------------------------
-            else:
-                if float(selected_action) <= float(self.pop_set[ref].action[1]) and float(selected_action) >= float(self.pop_set[ref].action[0]):
-                    self.action_set.append(ref)
+        for ref in self.match_set:
+            if self.pop_set[ref].action == selected_action:
+                self.action_set.append(ref)
 
     def makeEvalMatchSet(self, state):
         """ Constructs a match set for evaluation purposes which does not activate either covering or deletion. """
@@ -176,8 +165,9 @@ class ClassifierSet:
                 self.micro_size -= 1
                 if cl.numerosity < 1: # When all micro-classifiers for a given classifier have been depleted.
                     self.removeMacroClassifier(i)
-                    self.deleteFromMatchSet(i)
-                    self.deleteFromActionSet(i)
+                    if self.match_set != []:
+                        self.deleteFromMatchSet(i)
+                        self.deleteFromActionSet(i)
                 return
         print("ClassifierSet: No eligible rules found for deletion in deleteFromPopulation.")
         return
@@ -241,8 +231,8 @@ class ClassifierSet:
             clP2 = self.pop_set[ clP2_index ]
             #print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
-        clP1.updateGACount()
-        clP2.updateGACount()
+        # clP1.updateGACount()
+        # clP2.updateGACount()
         #-------------------------------------------------------
         # INITIALIZE OFFSPRING
         #-------------------------------------------------------
@@ -278,6 +268,7 @@ class ClassifierSet:
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         self.insertDiscoveredClassifiers( cl1, cl2, clP1, clP2 ) #Subsumption
+        self.match_set = []
         self.deletion()
 
 
