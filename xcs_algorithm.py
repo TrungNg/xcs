@@ -93,7 +93,7 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
-            test_iter = 87
+            test_iter = 99
             if self.iteration == test_iter and explorer == 0:
                 correctness=""
                 for i in range(test_iter):
@@ -107,7 +107,7 @@ class XCS:
                             cli_cond += cli.condition[cli.specified_attributes.index(j)]
                         else:
                             cli_cond += '#'
-                    print(str(i+1)+','+cli_cond+'|'+str(cli.action)+',prediction '+'{:.16f}'.format(cli.prediction)+',error '+'{:.16f}'.format(cli.error)+',fitness '+'{:.16f}'.format(cli.fitness)+',experience '+str(cli.action_cnt))
+                    print(str(i+1)+','+cli_cond+'|'+str(cli.action)+',prediction '+'{:.6f}'.format(cli.prediction)+',error '+'{:.6f}'.format(cli.error)+',fitness '+'{:.6f}'.format(cli.fitness)+',experience '+str(cli.action_cnt))
                 print('Accuracy '+'{:.6f}'.format(sum(self.tracked_results)/test_iter)+'; Macro size '+str(len(self.population.pop_set))+'; Micro size '+str(self.population.micro_size))
             if self.iteration % cons.tracking_frequency == 0 and explorer == 0:
                 self.population.runPopAveEval()
@@ -170,7 +170,6 @@ class XCS:
 
     def runExploit(self, state_action):
         """ Run an exploit iteration. """
-        """ Run an explore learning iteration. """
         self.population.makeMatchSet( state_action[0], self.iteration, self.pool )
 
         cons.timer.startTimeEvaluation()
@@ -185,7 +184,7 @@ class XCS:
 
     def runIteration(self, state_action):
         """ Run an explore learning iteration. """
-        reward = 0
+        reward = 0.0
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # FORM A MATCH SET - includes covering
         #-----------------------------------------------------------------------------------------------------------------------------------------
@@ -200,7 +199,7 @@ class XCS:
         # DISCRETE PHENOTYPE PREDICTION
         #-------------------------------------------------------
         if selected_action == state_action[1]:
-            reward = 1000
+            reward = 1000.0
         if cons.extra_estimation:
             if state_action[1] == prediction.decide( False ):
                 self.tracked_results[ self.tracking_iter ] = 1
@@ -347,7 +346,7 @@ class XCS:
             if selected_action == None:
                 no_match += 1
             else: #Instances which failed to be covered are excluded from the initial accuracy calculation
-                prediction_err = math.fabs(float(selected_action) - float(state_action[1]))
+                prediction_err = abs(float(selected_action) - float(state_action[1]))
                 action_range = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
                 accuracy_estimate_sum += 1.0 - (prediction_err / float(action_range))
 

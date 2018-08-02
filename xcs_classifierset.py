@@ -467,7 +467,7 @@ class ClassifierSet:
 
     def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
-        action_set_numer = 0
+        action_set_numer = 0.0
         for ref in self.action_set:
             action_set_numer += self.pop_set[ref].numerosity
         accuracy_sum = 0.0
@@ -475,10 +475,10 @@ class ClassifierSet:
             self.pop_set[ref].updateActionExp()
             self.pop_set[ref].updateActionSetSize( action_set_numer )
             self.pop_set[ref].updateXCSParameters( reward )
-            accuracy_sum += self.pop_set[ref].accuracy * float( self.pop_set[ref].numerosity )
+            accuracy_sum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
         for ref in self.action_set:
-            self.pop_set[ref].setAccuracy( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
-            self.pop_set[ref].updateFitness()
+            #self.pop_set[ref].setAccuracy( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
+            self.pop_set[ref].updateFitness( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

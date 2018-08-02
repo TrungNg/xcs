@@ -193,8 +193,8 @@ class Classifier:
         """ Applies two point crossover and returns if the classifiers changed. Handles merely discrete attributes and phenotypes """
         points = []
         changed = False
-        points.append( int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) ) )
-        second_point = int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) )
+        points.append( crandom.irand( cons.env.format_data.numb_attributes ) )
+        second_point = crandom.irand( cons.env.format_data.numb_attributes )
         if points[0] > second_point:
             temp_point = points[0]
             points[0] = second_point
@@ -203,7 +203,7 @@ class Classifier:
             points.append( second_point )
         self_specified_attributes = self.specified_attributes[:]
         cl_specified_attributes = cl.specified_attributes[:]
-        for i in range( points[0], points[1] ):
+        for i in range( points[0], points[1] + 1 ):
             if i in self_specified_attributes:
                 if i not in cl_specified_attributes:
                     index = self.specified_attributes.index(i)
@@ -388,31 +388,31 @@ class Classifier:
     def updateXCSParameters(self, reward):
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
         payoff = reward
-        if self.action_cnt >= 1.0 / cons.beta:
-            self.error += cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
+        if self.action_cnt < 1.0 / cons.beta:
+            self.error = ( self.error * ( float( self.action_cnt ) - 1.0 ) + abs( payoff - self.prediction ) ) / self.action_cnt
+            self.prediction = ( self.prediction * ( float( self.action_cnt ) - 1.0 ) + payoff ) / self.action_cnt
+        else:
+            self.error += cons.beta * ( abs( payoff - self.prediction ) - self.error )
             self.prediction += cons.beta * ( payoff - self.prediction )
-        else:
-            self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
-            self.prediction = ( self.prediction * ( self.action_cnt - 1 ) + payoff ) / self.action_cnt
         if self.error <= cons.offset_epsilon:
-            self.accuracy = 1
+            self.accuracy = 1.0
         else:
-            self.accuracy = cons.alpha * ( ( self.error/cons.offset_epsilon ) ** (-cons.nu) ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
+            self.accuracy = cons.alpha * math.pow( self.error/cons.offset_epsilon, -cons.nu ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
 
 
-    def updateFitness(self):
+    def updateFitness(self, local_accuracy):
         # if self.action_cnt >= 1.0 / cons.beta:
-        self.fitness += cons.beta * ( self.accuracy - self.fitness )
+        self.fitness += cons.beta * ( local_accuracy - self.fitness )
         # else:
-        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
+        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + local_accuracy ) / self.action_cnt
 
 
     def updateActionSetSize(self, actionset_size):
         """  Updates the average action set size. """
-        if self.action_cnt >= 1.0 / cons.beta:
-            self.avg_actionset_size = self.avg_actionset_size + cons.beta * (actionset_size - self.avg_actionset_size)
+        if self.action_cnt < 1.0 / cons.beta:
+            self.avg_actionset_size = (self.avg_actionset_size * ( float(self.action_cnt)-1 ) + actionset_size) / float(self.action_cnt)
         else:
-            self.avg_actionset_size = (self.avg_actionset_size * (self.action_cnt-1)+ actionset_size) / float(self.action_cnt)
+            self.avg_actionset_size += cons.beta * (float(actionset_size) - self.avg_actionset_size)
 
 
     def updateExperience(self):
