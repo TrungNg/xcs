@@ -215,6 +215,7 @@ class ClassifierSet:
         # GA RUN REQUIREMENT
         #-------------------------------------------------------
         if (iteration - self.getIterStampAverage()) < cons.theta_GA:  #Does the action set meet the requirements for activating the GA?
+            self.clearSets()
             return
 
         self.setIterStamps(iteration) #Updates the iteration time stamp for all rules in the match set (which the GA opperates in).
@@ -376,33 +377,33 @@ class ClassifierSet:
         #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # SUBSUMPTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def subsumeClassifier(self, cl=None, cl1P=None, cl2P=None):
+    def subsumeClassifier(self, cl=None, cl1P=None, cl2P=None, numerosity=1):
         """ Tries to subsume a classifier in the parents. If no subsumption is possible it tries to subsume it in the current set. """
         if cl1P!=None and cl1P.subsumes(cl):
-            self.micro_size += 1
-            cl1P.updateNumerosity(1)
+            self.micro_size += numerosity
+            cl1P.updateNumerosity(numerosity)
         elif cl2P!=None and cl2P.subsumes(cl):
-            self.micro_size += 1
-            cl2P.updateNumerosity(1)
+            self.micro_size += numerosity
+            cl2P.updateNumerosity(numerosity)
         else:
             #self.addClassifierToPopulation(cl)
-            self.subsumeClassifier2(cl); #Try to subsume in the match set.
+            self.subsumeClassifier2(cl, numerosity); #Try to subsume in the match set.
 
-    def subsumeClassifier2(self, cl):
+    def subsumeClassifier2(self, cl, numerosity):
         """ Tries to subsume a classifier in the match set. If no subsumption is possible the classifier is simply added to the population considering
         the possibility that there exists an identical classifier. """
         choices = []
-        for ref in self.match_set:
+        for ref in self.action_set:
             if self.pop_set[ref].subsumes(cl):
                 choices.append(ref)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
             choicep = int(crandom.random()*len(choices))
-            self.pop_set[choices[choicep]].updateNumerosity(1)
-            self.micro_size += 1
+            self.pop_set[choices[choicep]].updateNumerosity(numerosity)
+            self.micro_size += numerosity
             return
 
-        self.addClassifierToPopulation(cl) #If no subsumer was found, check for identical classifier, if not then add the classifier to the population
+        self.addClassifierToPopulation(cl, num_copy=numerosity) #If no subsumer was found, check for identical classifier, if not then add the classifier to the population
 
     def doActionSetSubsumption(self):
         """ Executes match set subsumption.  The match set subsumption looks for the most general subsumer classifier in the match set
@@ -430,16 +431,16 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # OTHER KEY METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def addClassifierToPopulation(self, cl, covering = False):
+    def addClassifierToPopulation(self, cl, covering = False, num_copy=1):
         """ Adds a classifier to the set and increases the microPopSize value accordingly."""
         old_cl = None
         if not covering:
             old_cl = self.getIdenticalClassifier(cl)
         if old_cl != None: #found identical classifier
-            old_cl.updateNumerosity(1)
+            old_cl.updateNumerosity(num_copy)
         else:
             self.pop_set.append(cl)
-        self.micro_size += 1
+        self.micro_size += num_copy
 
     def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2):
         """ Inserts both discovered classifiers and activates GA subsumption if turned on. Also checks for default rule (i.e. rule with completely general condition) and
@@ -449,21 +450,21 @@ class ClassifierSet:
         #-------------------------------------------------------
         if cons.do_ga_subsumption:
             cons.timer.startTimeSubsumption()
-
-            if len(cl1.specified_attributes) > 0:
+            if not cl1.equals(cl2):
                 self.subsumeClassifier(cl1, clP1, clP2)
-            if len(cl2.specified_attributes) > 0:
                 self.subsumeClassifier(cl2, clP1, clP2)
-
+            else:
+                self.subsumeClassifier(cl1, clP1, clP2, 2)
             cons.timer.stopTimeSubsumption()
         #-------------------------------------------------------
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         else: #Just add the new classifiers to the population.
-            if len(cl1.specified_attributes) > 0:
+            if not cl1.equals(cl2):
                 self.addClassifierToPopulation(cl1) #False passed because this is not called for a covered rule.
-            if len(cl2.specified_attributes) > 0:
                 self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
+            else:
+                self.addClassifierToPopulation(cl1, num_copy=2)
 
     def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
@@ -519,8 +520,9 @@ class ClassifierSet:
     def getIdenticalClassifier(self, new_cl):
         """ Looks for an identical classifier in the population. """
         for ref in self.match_set:
-            if new_cl.equals(self.pop_set[ref]):
-                return self.pop_set[ref]
+            existing_cl = self.pop_set[ref]
+            if new_cl.equals( existing_cl ):
+                return existing_cl
         return None
 
     def clearSets(self):
