@@ -157,10 +157,10 @@ class ClassifierSet:
         choice_point = vote_sum * crandom.random() #Determine the choice point
         new_sum = 0.0
         for i in range(len(vote_list)):
-            cl = self.pop_set[i]
             new_sum = new_sum + vote_list[i]
             if new_sum > choice_point: #Select classifier for deletion
                 #Delete classifier----------------------------------
+                cl = self.pop_set[i]
                 cl.updateNumerosity(-1)
                 self.micro_size -= 1
                 if cl.numerosity < 1: # When all micro-classifiers for a given classifier have been depleted.
@@ -191,7 +191,7 @@ class ClassifierSet:
         if cl_ref in self.action_set:
             self.action_set.remove(cl_ref)
 
-        #Update match set reference list--------
+        #Update action set reference list--------
         for j in range(len(self.action_set)):
             ref = self.action_set[j]
             if ref > cl_ref:
@@ -207,6 +207,7 @@ class ClassifierSet:
         # GA RUN REQUIREMENT
         #-------------------------------------------------------
         if (iteration - self.getIterStampAverage()) < cons.theta_GA:  #Does the action set meet the requirements for activating the GA?
+            self.clearSets()
             return
 
         self.setIterStamps(iteration) #Updates the iteration time stamp for all rules in the match set (which the GA opperates in).
@@ -268,7 +269,7 @@ class ClassifierSet:
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         self.insertDiscoveredClassifiers( cl1, cl2, clP1, clP2 ) #Subsumption
-        self.match_set = []
+        self.clearSets()
         self.deletion()
 
 
@@ -278,9 +279,9 @@ class ClassifierSet:
     def selectClassifierRW(self):
         """ Selects parents using roulette wheel selection according to the fitness of the classifiers. """
         #Prepare for actionSet set or 'niche' selection.
-        set_list = self.action_set[:]
         selected_list = [None, None]
         count = 0 #Pick two parents
+        set_list = self.action_set[:]
         #-----------------------------------------------
         while count < 2:
             fit_sum = self.getFitnessSum(set_list)
@@ -304,7 +305,7 @@ class ClassifierSet:
         selected_list = [None, None]
         count = 0
         set_list = self.action_set[:] #actionSet set is a list of reference IDs
-
+        # -----------------------------------------------
         while count < 2:
             tournament_size = int(len(set_list)*cons.theta_sel)
             if tournament_size < 1:
@@ -368,19 +369,19 @@ class ClassifierSet:
         #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # SUBSUMPTION METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def subsumeClassifier(self, cl=None, cl1P=None, cl2P=None):
+    def subsumeClassifier(self, cl=None, cl1P=None, cl2P=None, num_copy=1):
         """ Tries to subsume a classifier in the parents. If no subsumption is possible it tries to subsume it in the current set. """
         if cl1P!=None and cl1P.subsumes(cl):
-            self.micro_size += 1
-            cl1P.updateNumerosity(1)
+            self.micro_size += num_copy
+            cl1P.updateNumerosity(num_copy)
         elif cl2P!=None and cl2P.subsumes(cl):
-            self.micro_size += 1
-            cl2P.updateNumerosity(1)
+            self.micro_size += num_copy
+            cl2P.updateNumerosity(num_copy)
         else:
             #self.addClassifierToPopulation(cl)
-            self.subsumeClassifier2(cl); #Try to subsume in the match set.
+            self.subsumeClassifier2(cl, num_copy)     #Try to subsume in the match set.
 
-    def subsumeClassifier2(self, cl):
+    def subsumeClassifier2(self, cl, num_copy=1):
         """ Tries to subsume a classifier in the match set. If no subsumption is possible the classifier is simply added to the population considering
         the possibility that there exists an identical classifier. """
         choices = []
@@ -389,12 +390,12 @@ class ClassifierSet:
                 choices.append(ref)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
-            choicep = int(crandom.random()*len(choices))
-            self.pop_set[choices[choicep]].updateNumerosity(1)
-            self.micro_size += 1
+            choicep = int( crandom.random()*len(choices) )
+            self.pop_set[ choices[choicep] ].updateNumerosity(num_copy)
+            self.micro_size += num_copy
             return
 
-        self.addClassifierToPopulation(cl) #If no subsumer was found, check for identical classifier, if not then add the classifier to the population
+        self.addClassifierToPopulation(cl, num_copy=num_copy) #If no subsumer was found, check for identical classifier, if not then add the classifier to the population
 
     def doActionSetSubsumption(self):
         """ Executes match set subsumption.  The match set subsumption looks for the most general subsumer classifier in the match set
@@ -422,16 +423,16 @@ class ClassifierSet:
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # OTHER KEY METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def addClassifierToPopulation(self, cl, covering = False):
+    def addClassifierToPopulation(self, cl, covering = False, num_copy=1):
         """ Adds a classifier to the set and increases the microPopSize value accordingly."""
         old_cl = None
         if not covering:
             old_cl = self.getIdenticalClassifier(cl)
         if old_cl != None: #found identical classifier
-            old_cl.updateNumerosity(1)
+            old_cl.updateNumerosity(num_copy)
         else:
             self.pop_set.append(cl)
-        self.micro_size += 1
+        self.micro_size += num_copy
 
     def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2):
         """ Inserts both discovered classifiers and activates GA subsumption if turned on. Also checks for default rule (i.e. rule with completely general condition) and
@@ -441,21 +442,27 @@ class ClassifierSet:
         #-------------------------------------------------------
         if cons.do_ga_subsumption:
             cons.timer.startTimeSubsumption()
-
-            if len(cl1.specified_attributes) > 0:
-                self.subsumeClassifier(cl1, clP1, clP2)
-            if len(cl2.specified_attributes) > 0:
-                self.subsumeClassifier(cl2, clP1, clP2)
-
+            if not cl1.equals(cl2):
+                if len( cl1.specified_attributes ) > 0:
+                    self.subsumeClassifier( cl1, clP1, clP2 )
+                if len( cl2.specified_attributes ) > 0:
+                    self.subsumeClassifier( cl2, clP1, clP2 )
+            elif len( cl1.specified_attributes ) > 0:
+                cl1.numerosity = 2
+                self.subsumeClassifier( cl1, clP1, clP2, num_copy=2 )
             cons.timer.stopTimeSubsumption()
         #-------------------------------------------------------
         # ADD OFFSPRING TO POPULATION
         #-------------------------------------------------------
         else: #Just add the new classifiers to the population.
-            if len(cl1.specified_attributes) > 0:
-                self.addClassifierToPopulation(cl1) #False passed because this is not called for a covered rule.
-            if len(cl2.specified_attributes) > 0:
-                self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
+            if not cl1.equals(cl2):
+                if len( cl1.specified_attributes) > 0:
+                    self.addClassifierToPopulation(cl1) #False passed because this is not called for a covered rule.
+                if len( cl2.specified_attributes ) > 0:
+                    self.addClassifierToPopulation(cl2) #False passed because this is not called for a covered rule.
+            elif len( cl1.specified_attributes ) > 0:
+                cl1.numerosity = 2
+                self.addClassifierToPopulation(cl1, num_copy=2)
 
     def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
@@ -469,8 +476,7 @@ class ClassifierSet:
             self.pop_set[ref].updateXCSParameters( reward )
             accuracy_sum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
         for ref in self.action_set:
-            self.pop_set[ref].setAccuracy( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
-            self.pop_set[ref].updateFitness()
+            self.pop_set[ref].updateFitness( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

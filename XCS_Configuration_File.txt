@@ -19,7 +19,7 @@ p_spec=0.5										# The probability of specifying an attribute when covering. 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Logistical Run Parameters
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-randomSeed=2010									# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
+randomSeed=2018									# Set a constant random seed value to some integer (in order to obtain reproducible results). Put 'False' if none (for pseudo-random algorithm runs).
 labelInstanceID=InstanceID						# Label for the data column header containing instance ID's.  If included label not found, algorithm assumes that no instance ID's were included.
 labelClass=Class								# Label for the data column header containing the phenotype label. (Typically 'Class' for case/control datasets)
 labelMissingData=NA								# Label used for any missing data in the data set.
@@ -54,7 +54,7 @@ exploration=0.5									# Probability to select action by exploration (only supp
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 doGASubsumption=1								# Try to subsume offspring by a subsumer chosen in action set.
 doActionetSubsumption=0							# Activate Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
-selectionMethod=roulette						# Select GA parent selection strategy ('tournament' or 'roulette')
+selectionMethod=tournament						# Select GA parent selection strategy ('tournament' or 'roulette')
 differentParent=0								# Force different parents in tournament selection or not
 theta_sel=0.4									# The fraction of the correct set to be included in tournament selection.
 crossoverMethod=twopoint						# option for type of crossover

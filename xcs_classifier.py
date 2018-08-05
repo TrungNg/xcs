@@ -14,7 +14,7 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 #Import Required Modules---------------
 from xcs_constants import *
 import crandom
-import math
+#import math
 #--------------------------------------
 
 class Classifier:
@@ -190,19 +190,17 @@ class Classifier:
 
     def twoPointCrossover(self, cl):
         """ Applies two point crossover and returns if the classifiers changed. Handles merely discrete attributes and phenotypes """
-        points = []
+        points = [None, None]
         changed = False
-        points.append( int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) ) )
-        second_point = int( crandom.random() * ( cons.env.format_data.numb_attributes + 1 ) )
-        if points[0] > second_point:
+        points[0] = int( crandom.random() * ( cons.env.format_data.numb_attributes ) )
+        points[1] = int( crandom.random() * ( cons.env.format_data.numb_attributes ) )
+        if points[0] > points[1]:
             temp_point = points[0]
-            points[0] = second_point
-            points.append( temp_point )
-        else:
-            points.append( second_point )
+            points[0] = points[1]
+            points[1] = temp_point
         self_specified_attributes = self.specified_attributes[:]
         cl_specified_attributes = cl.specified_attributes[:]
-        for i in range( points[0], points[1] ):
+        for i in range( points[0], points[1] + 1 ):
             if i in self_specified_attributes:
                 if i not in cl_specified_attributes:
                     index = self.specified_attributes.index(i)
@@ -331,13 +329,11 @@ class Classifier:
             return True
         return False
 
-
     def isPossibleSubsumer(self):
         """ Returns if the classifier (self) is a possible subsumer. A classifier must be as or more accurate than the classifier it is trying to subsume.  """
         if self.action_cnt > cons.theta_sub and self.error < cons.err_sub: #self.prediction < cons.err_sub: (why does it work?)
             return True
         return False
-
 
     def isMoreGeneral(self,cl):
         """ Returns if the classifier (self) is more general than cl. Check that all attributes specified in self are also specified in cl. """
@@ -355,106 +351,91 @@ class Classifier:
         """  Returns the vote for deletion of the classifier. """
         self.delete_vote = self.avg_actionset_size * self.numerosity
         if self.action_cnt > cons.theta_del and self.fitness/self.numerosity < cons.delta*avg_fitness:
-            if self.fitness > 0.0:
-                self.delete_vote *= avg_fitness / ( self.fitness/self.numerosity )
+            if self.fitness != 0.0:
+                self.delete_vote *= avg_fitness*self.numerosity / self.fitness      #same as avg_fitness / ( self.fitness/self.numerosity )
             else:
-                self.delete_vote *= avg_fitness / ( cons.init_fit/self.numerosity )
+                self.delete_vote *= avg_fitness*self.numerosity / cons.init_fit     #same as avg_fitness / ( cons.init_fit/self.numerosity )
         return self.delete_vote
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # OTHER METHODS
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    def equals(self, cl):
+    def equals(self, cl, niched = True):
         """ Returns if the two classifiers are identical in condition and phenotype. This works for discrete or continuous attributes or phenotypes. """
-        if cl.action == self.action and len(cl.specified_attributes) == len(self.specified_attributes): #Is phenotype the same and are the same number of attributes specified - quick equality check first.
+        if cl.action == self.action and len( cl.specified_attributes ) == len( self.specified_attributes ): #Is phenotype the same and are the same number of attributes specified - quick equality check first.
             cl_atts = sorted(cl.specified_attributes)
             self_atts = sorted(self.specified_attributes)
             if cl_atts == self_atts:
-                for i in range(len(cl.specified_attributes)):
-                    tmp_index = self.specified_attributes.index(cl.specified_attributes[i])
-                    if cl.condition[i] == self.condition[tmp_index]:
-                        pass
-                    else:
-                        return False
+                if not niched:      # compare condition if comparison between classifiers in different niches.
+                    for i in range( len(cl.specified_attributes) ):
+                        tmp_index = self.specified_attributes.index( cl.specified_attributes[i] )
+                        if cl.condition[i] == self.condition[tmp_index]:
+                            pass
+                        else:
+                            return False
                 return True
         return False
-
 
     def updateXCSParameters(self, reward):
         """ Update the XCS classifier parameters: prediction payoff, prediction error and fitness. """
         payoff = reward
         if self.action_cnt >= 1.0 / cons.beta:
-            self.error = self.error + cons.beta * ( math.fabs( payoff - self.prediction ) - self.error )
-            self.prediction = self.prediction + cons.beta * ( payoff - self.prediction )
+            self.error += cons.beta * ( abs( payoff - self.prediction ) - self.error )
+            self.prediction += cons.beta * ( payoff - self.prediction )
         else:
-            self.error = ( self.error * ( self.action_cnt - 1 ) + math.fabs( payoff - self.prediction ) ) / self.action_cnt
+            self.error = ( self.error * ( self.action_cnt - 1 ) + abs( payoff - self.prediction ) ) / self.action_cnt
             self.prediction = ( self.prediction * ( self.action_cnt - 1 ) + payoff ) / self.action_cnt
         if self.error <= cons.offset_epsilon:
-            self.accuracy = 1
+            self.accuracy = 1.0
         else:
             self.accuracy = cons.alpha * ( ( self.error/cons.offset_epsilon ) ** (-cons.nu) ) #math.pow( cons.alpha, ( self.error - cons.offset_epsilon ) / cons.offset_epsilon )
 
-
-    def updateFitness(self):
-        # if self.action_cnt >= 1.0 / cons.beta:
-        self.fitness = self.fitness + cons.beta * ( self.accuracy - self.fitness )
-        # else:
-        #     self.fitness = ( self.fitness * ( self.action_cnt - 1 ) + self.accuracy ) / self.action_cnt
-
+    def updateFitness(self, local_accuracy):
+        """ Update fitness of classifier/rule. """
+        self.fitness += cons.beta * ( local_accuracy - self.fitness )
 
     def updateActionSetSize(self, actionset_size):
         """  Updates the average action set size. """
         if self.action_cnt >= 1.0 / cons.beta:
-            self.avg_actionset_size = self.avg_actionset_size + cons.beta * (actionset_size - self.avg_actionset_size)
+            self.avg_actionset_size += cons.beta * (actionset_size - self.avg_actionset_size)
         else:
             self.avg_actionset_size = (self.avg_actionset_size * (self.action_cnt-1)+ actionset_size) / float(self.action_cnt)
-
 
     def updateExperience(self):
         """ Increases the experience of the classifier by one. Once an epoch has completed, rule accuracy can't change."""
         self.matchCount += 1
 
-
     def updateActionExp(self):
         """ Increases the experience of the classifier by one. Once an epoch has completed, rule accuracy can't change."""
         self.action_cnt += 1
-
 
     def updateGACount(self):
         """ Increment number of times the classifier is selected in GA by one, for statistics. """
         self.ga_count += 1
 
-
     def updateNumerosity(self, num):
         """ Updates the numberosity of the classifier.  Notice that 'num' can be negative! """
         self.numerosity += num
-
 
     def updateTimeStamp(self, ts):
         """ Sets the time stamp of the classifier. """
         self.ga_timestamp = ts
 
-
     def setPrediction(self,pred):
         """ Sets the accuracy of the classifier """
         self.prediction = pred
-
 
     def setError(self,err):
         """ Sets the accuracy of the classifier """
         self.error = err
 
-
     def setAccuracy(self,acc):
         """ Sets the accuracy of the classifier """
         self.accuracy = acc
 
-
     def setFitness(self, fit):
         """  Sets the fitness of the classifier. """
         self.fitness = fit
-
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # PRINT CLASSIFIER FOR POPULATION OUTPUT FILE

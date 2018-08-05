@@ -66,7 +66,7 @@ class Prediction:
         return self.decision
 
     def decide2(self, exploring=True):
-        """ Returns prediction decision. """
+        """ Returns prediction decision. Random selection of actions with same prediction in exploitation. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
         else:
@@ -86,7 +86,7 @@ class Prediction:
         return self.decision
 
     def decide(self, exploring=True):
-        """ Returns prediction decision. """
+        """ Returns prediction decision. Use numerosity to choose action in case of same prediction in exploitation. """
         if exploring:
             self.decision = crandom.choice( cons.env.format_data.action_list )
         else:

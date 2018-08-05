@@ -10,7 +10,6 @@ Description:
 """
 
 #Import Required Modules-------------------------------
-import math
 from multiprocessing import Pool, cpu_count
 
 from xcs_class_accuracy import ClassAccuracy
@@ -159,10 +158,10 @@ class XCS:
         prediction = Prediction( self.population )
         selected_action = prediction.decide( exploring=False )
         if selected_action == state_action[1]:
-            reward = 1000
+            reward = 1000.0
             self.tracked_results.append(1)
         else:
-            reward = 0
+            reward = 0.0
             self.tracked_results.append(0)
         cons.timer.stopTimeEvaluation()
         self.population.makeActionSet( selected_action )
@@ -171,7 +170,7 @@ class XCS:
 
     def runIteration(self, state_action):
         """ Run an explore learning iteration. """
-        reward = 0
+        reward = 0.0
         #-----------------------------------------------------------------------------------------------------------------------------------------
         # FORM A MATCH SET - includes covering
         #-----------------------------------------------------------------------------------------------------------------------------------------
@@ -186,7 +185,7 @@ class XCS:
         # DISCRETE PHENOTYPE PREDICTION
         #-------------------------------------------------------
         if selected_action == state_action[1]:
-            reward = 1000
+            reward = 1000.0
         if cons.extra_estimation:
             if state_action[1] == prediction.decide( exploring=False ):
                 self.tracked_results[ self.tracking_iter ] = 1
@@ -211,10 +210,7 @@ class XCS:
         # RUN THE GENETIC ALGORITHM - Discover new offspring rules from a selected pair of parents
         #-----------------------------------------------------------------------------------------------------------------------------------------
         self.population.runGA( self.iteration, state_action[ 0 ] )
-        #-----------------------------------------------------------------------------------------------------------------------------------------
-        # SELECT RULES FOR DELETION - This is done whenever there are more rules in the population than 'N', the maximum population size.
-        #-----------------------------------------------------------------------------------------------------------------------------------------
-        self.population.clearSets() #Clears the match and action sets for the next learning iteration
+        #self.population.clearSets() #Clears the match and action sets (done in runGA)
 
 
     def doPopEvaluation(self, is_train):
@@ -333,7 +329,7 @@ class XCS:
             if selected_action == None:
                 no_match += 1
             else: #Instances which failed to be covered are excluded from the initial accuracy calculation
-                prediction_err = math.fabs(float(selected_action) - float(state_action[1]))
+                prediction_err = abs(float(selected_action) - float(state_action[1]))
                 action_range = cons.env.format_data.action_list[1] - cons.env.format_data.action_list[0]
                 accuracy_estimate_sum += 1.0 - (prediction_err / float(action_range))
 
