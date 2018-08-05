@@ -93,7 +93,7 @@ class XCS:
             #-------------------------------------------------------
             # TRACK LEARNING ESTIMATES
             #-------------------------------------------------------
-            test_iter = 372
+            test_iter = 373 #374 different in fitness calculation causes RW selects different pairs of parents
             if self.iteration == test_iter and explorer == 0:
                 correctness=""
                 for i in range( test_iter%cons.tracking_frequency ):
