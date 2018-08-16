@@ -12,7 +12,8 @@ Description:
 #Import Required Modules---------------------
 from xcs_constants import *
 from xcs_classifier import Classifier
-import crandom
+#import crandom as random
+import random
 #--------------------------------------------
 
 class ClassifierSet:
@@ -154,7 +155,7 @@ class ClassifierSet:
             vote_sum += vote
             vote_list.append(vote)
         #--------------------------------------------------------
-        choice_point = vote_sum * crandom.random() #Determine the choice point
+        choice_point = vote_sum * random.random() #Determine the choice point
         new_sum = 0.0
         for i in range(len(vote_list)):
             new_sum = new_sum + vote_list[i]
@@ -245,7 +246,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
         #-------------------------------------------------------
-        if crandom.random() < cons.chi:
+        if random.random() < cons.chi:
             if cons.crossover_method == 'uniform':
                 changed = cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
@@ -286,7 +287,7 @@ class ClassifierSet:
         while count < 2:
             fit_sum = self.getFitnessSum(set_list)
 
-            choice_point = crandom.random() * fit_sum
+            choice_point = random.random() * fit_sum
             i=0
             sum_cl = self.pop_set[set_list[i]].fitness
             while choice_point > sum_cl:
@@ -310,7 +311,7 @@ class ClassifierSet:
             tournament_size = int(len(set_list)*cons.theta_sel)
             if tournament_size < 1:
                 tournament_size = 1
-            post_list = crandom.sample(set_list,tournament_size)
+            post_list = random.sample(set_list,tournament_size)
             highest_fitness = 0
             best_cl = post_list[0]
             for j in post_list:
@@ -344,7 +345,7 @@ class ClassifierSet:
     #             # if his fitness is worse then do not bother
     #             if len(winnerSet) == 0 or (fitness - select_tolerance) <= self.pop_set[i].fitness/self.pop_set[i].numerosity:
     #                 for j in range(0, self.pop_set[i].numerosity):
-    #                     if crandom.random() < cons.theta_sel:
+    #                     if random.random() < cons.theta_sel:
     #                         if len(winnerSet) == 0:
     #                             # the first one
     #                             winnerSet.append(i)
@@ -390,7 +391,7 @@ class ClassifierSet:
                 choices.append(ref)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
-            choicep = int( crandom.random()*len(choices) )
+            choicep = int( random.random()*len(choices) )
             self.pop_set[ choices[choicep] ].updateNumerosity(num_copy)
             self.micro_size += num_copy
             return
@@ -404,7 +405,7 @@ class ClassifierSet:
         for ref in self.action_set:
             cl = self.pop_set[ref]
             if cl.isPossibleSubsumer():
-                if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and crandom.random() < 0.5 ) ):
+                if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and random.random() < 0.5 ) ):
                     subsumer = cl
 
         if subsumer != None: #If a subsumer was found, subsume all more specific classifiers in the match set

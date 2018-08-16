@@ -9,12 +9,12 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 """
-
 #Import Required Modules--------------------------------------
 from xcs_constants import *
-import crandom
-import sys
+#import crandom as random
+import random
 #-------------------------------------------------------------
+
 
 class Online_Environment:
     def __init__(self, problem, sizes):
@@ -22,8 +22,9 @@ class Online_Environment:
         self.data_ref = 0
         self.saved_dat_ref = 0
         options={ 'multiplexer':MulplexerGenerator,
-                  'hidden_multiplexer': HiddenMultiplexer,
-                  'majorityon': MajorityOnGenerator,
+                  'hidden_multiplexer':HiddenMultiplexer,
+                  'majorityon':MajorityOnGenerator,
+                  'carry':CarryGenerator,
                   'parity_countone':ParityCountOne }
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
@@ -77,12 +78,14 @@ class MulplexerGenerator( DataGenerator ):
         condition = []
         #Generate random boolean string
         for _ in range( self.numb_attributes ):
-            condition.append( str( crandom.randint( 0, 1 ) ) )
+            condition.append( str( random.randint( 0, 1 ) ) )
+
         gates=""
         for j in range( self.address_size ):
             gates += condition[ j ]
         gates_decimal = int( gates, 2 )
         output = condition[ self.address_size + gates_decimal ]
+
         return [ condition, output ]
 
     def _findAddressSize(self, num_bits):
@@ -92,6 +95,65 @@ class MulplexerGenerator( DataGenerator ):
             if i + 2**i > num_bits:
                 break
         return None
+
+
+class MajorityOnGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
+        self.headers = []
+        for i in range( sizes[0] ):
+            self.headers.append( 'B' + str(i) )
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            condition.append( str( random.randint( 0, 1 ) ) )
+        #Find output for generated condition
+        counts = 0
+        for att in condition:
+            if att == '1':
+                counts += 1
+        if counts > self.numb_attributes / 2:
+            output = '1'
+        else:
+            output = '0'
+        return [ condition, output ]
+
+
+class CarryGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Carry problem. """
+        if sizes[0] % 2 == 1:
+            raise ValueError("illegal size for the Carry Problem")
+        self.half_length = int( sizes[0]/2 )
+        self.headers = [None] * sizes[0]
+        for i in range( self.half_length ):
+            self.headers[i] = 'B' + str(i)
+            self.headers[i + self.half_length] = 'A' + str(i)
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        cond_int = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            new_input = random.randint( 0, 1 )
+            condition.append( str( new_input ) )
+            cond_int.append( new_input )
+        #Find output for generated condition
+        #output = 0
+        for i in range(0, self.half_length):
+            #output = int( ( output + cond_int[ half_condition-1-i ] + cond_int[ half_condition-1-i+half_condition ] ) / 2 )
+            if cond_int[i] == cond_int[ i+self.half_length ]:
+                if cond_int[i] == 0:
+                    return [ condition, 0 ]
+                else:
+                    return [ condition, 1 ]
+        return [ condition, 0 ]
 
 
 class HiddenMultiplexer( DataGenerator ):
@@ -117,7 +179,7 @@ class HiddenMultiplexer( DataGenerator ):
         condition = []
         #Generate random boolean string
         for _ in range( self.numb_attributes ):
-            condition.append( str( crandom.randint( 0, 1 ) ) )
+            condition.append( str( random.randint( 0, 1 ) ) )
         gates=""
         for i in range( self.multiplexer_addr_size ):
             count = 0
@@ -150,32 +212,6 @@ class HiddenMultiplexer( DataGenerator ):
         return None
 
 
-class MajorityOnGenerator( DataGenerator ):
-    def __init__(self, sizes):
-        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
-        self.headers = []
-        for i in range( sizes[0] ):
-            self.headers.append( 'B' + str(i) )
-        super().__init__( sizes )
-
-    def generateInstance(self):
-        """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
-        #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            condition.append( str( crandom.randint( 0, 1 ) ) )
-        #Find output for generated condition
-        counts = 0
-        for att in condition:
-            if att == '1':
-                counts += 1
-        if counts > self.numb_attributes / 2:
-            output = '1'
-        else:
-            output = '0'
-        return [ condition, output ]
-
-
 class ParityCountOne( DataGenerator ):
     def __init__(self, sizes):
         """ Initialize Paratiy - Count one data generator. Lowest level are blocks of data with same size.
@@ -196,7 +232,7 @@ class ParityCountOne( DataGenerator ):
         condition = []
         #Generate random boolean string
         for _ in range( self.parity_size * self.countone_size ):
-            condition.append( str( crandom.randint( 0, 1 ) ) )
+            condition.append( str( random.randint( 0, 1 ) ) )
         counts=[]
         for j in range( self.countone_size ):
             counts.append( 0 )
@@ -211,5 +247,4 @@ class ParityCountOne( DataGenerator ):
             output = '1'
         else:
             output = '0'
-
         return [ condition, output ]

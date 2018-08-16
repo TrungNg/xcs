@@ -1,5 +1,5 @@
 """
-Name:        crandom.pyx
+Name:        crandom.py
 Authors:     Bao Trung
 Contact:     baotrung@ecs.vuw.ac.nz
 Created:     July, 2018

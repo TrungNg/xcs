@@ -11,7 +11,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 
 #Import Required Modules------------------------------------
-import crandom
+#import crandom as random
+import random
 import datetime
 from xcs_timer import Timer
 from xcs_config_parser import ConfigParser
@@ -68,9 +69,9 @@ getOptions( argv )
 
 #Set random seed if specified.-----------------------------------------------
 if cons.use_seed:
-    crandom.seed(cons.random_seed)
+    random.seed(cons.random_seed)
 else:
-    crandom.seed(datetime.now())
+    random.seed(datetime.now())
 
 #Initialize the 'Environment' module which manages the data presented to the algorithm.  While e-LCS learns iteratively (one inistance at a time
 if cons.online_data_generator:

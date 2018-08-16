@@ -11,7 +11,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 
 #Import Required Modules--------------
-import crandom
+#import crandom as random
+import random
 from xcs_constants import *
 #-------------------------------------
 
@@ -57,7 +58,7 @@ class Prediction:
     def decide1(self, exploring=True):
         """ Returns prediction decision. """
         if exploring:
-            self.decision = crandom.choice( cons.env.format_data.action_list )
+            self.decision = random.choice( cons.env.format_data.action_list )
         else:
             self.decision = cons.env.format_data.action_list[0]
             for action in cons.env.format_data.action_list:
@@ -68,7 +69,7 @@ class Prediction:
     def decide2(self, exploring=True):
         """ Returns prediction decision. Random selection of actions with same prediction in exploitation. """
         if exploring:
-            self.decision = crandom.choice( cons.env.format_data.action_list )
+            self.decision = random.choice( cons.env.format_data.action_list )
         else:
             max_prediction = 0.0
             best_set = []  # Prediction is set up to handle best class ties for problems with more than 2 classes
@@ -82,13 +83,13 @@ class Prediction:
             if len( best_set ) == 1:
                 self.decision = best_set[0]
             else:
-                self.decision = crandom.choice( best_set )
+                self.decision = random.choice( best_set )
         return self.decision
 
     def decide(self, exploring=True):
         """ Returns prediction decision. Use numerosity to choose action in case of same prediction in exploitation. """
         if exploring:
-            self.decision = crandom.choice( cons.env.format_data.action_list )
+            self.decision = random.choice( cons.env.format_data.action_list )
         else:
             max_prediction = 0.0
             self.best_set = []  # Prediction is set up to handle best class ties for problems with more than 2 classes
@@ -114,5 +115,5 @@ class Prediction:
                 if len(new_best_action) == 1:
                     self.decision = new_best_action[0]
                 else:  # still a tie
-                    self.decision = crandom.choice(new_best_action)
+                    self.decision = random.choice(new_best_action)
         return self.decision
