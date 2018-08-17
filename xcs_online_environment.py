@@ -150,10 +150,10 @@ class CarryGenerator( DataGenerator ):
             #output = int( ( output + cond_int[ half_condition-1-i ] + cond_int[ half_condition-1-i+half_condition ] ) / 2 )
             if cond_int[i] == cond_int[ i+self.half_length ]:
                 if cond_int[i] == 0:
-                    return [ condition, 0 ]
+                    return [ condition, '0' ]
                 else:
-                    return [ condition, 1 ]
-        return [ condition, 0 ]
+                    return [ condition, '1' ]
+        return [ condition, '0' ]
 
 
 class HiddenMultiplexer( DataGenerator ):
