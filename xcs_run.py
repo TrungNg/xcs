@@ -11,8 +11,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 
 #Import Required Modules------------------------------------
-#import crandom as random
-import random
+import crandom as random
+#import random
 import datetime
 from xcs_timer import Timer
 from xcs_config_parser import ConfigParser

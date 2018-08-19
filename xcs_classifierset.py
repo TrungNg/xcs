@@ -12,8 +12,8 @@ Description:
 #Import Required Modules---------------------
 from xcs_constants import *
 from xcs_classifier import Classifier
-#import crandom as random
-import random
+import crandom as random
+#import random
 #--------------------------------------------
 
 class ClassifierSet:
@@ -246,7 +246,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         # CROSSOVER OPERATOR - Uniform Crossover Implemented (i.e. all attributes have equal probability of crossing over between two parents)
         #-------------------------------------------------------
-        if random.random() < cons.chi:
+        if not cl1.equals(cl2) and random.random() < cons.chi:
             if cons.crossover_method == 'uniform':
                 changed = cl1.uniformCrossover(cl2)
             elif cons.crossover_method == 'twopoint':
