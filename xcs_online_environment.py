@@ -23,9 +23,10 @@ class Online_Environment:
         self.saved_dat_ref = 0
         options={ 'multiplexer':MulplexerGenerator,
                   'hidden_multiplexer':HiddenMultiplexer,
+                  'hidden_carry':HiddenCarryGenerator,
                   'majorityon':MajorityOnGenerator,
                   'carry':CarryGenerator,
-                  'parity_countone':ParityCountOne }
+                  'hidden_majorityon':HiddenMajorityOn }
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
 
@@ -156,6 +157,48 @@ class CarryGenerator( DataGenerator ):
         return [ condition, '0' ]
 
 
+class HiddenCarryGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Carry problem. """
+        self.parity_size = sizes[ 1 ]
+        if sizes[2] % 2 == 1:
+            raise ValueError("illegal size for the Carry Problem")
+        self.half_length = int( sizes[2]/2 )
+        self.headers = [None] * sizes[0]
+        for i in range( self.half_length ):
+            for j in range( self.parity_size ):
+                self.headers[ i*self.parity_size ] = 'A' + str(i) + str(j)
+                self.headers[ (i + self.half_length)*self.parity_size ] = 'B' + str(i) + str(j)
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = []
+        cond_int = []
+        #Generate random boolean string
+        for _ in range( self.numb_attributes ):
+            new_input = random.randint( 0, 1 )
+            condition.append( str( new_input ) )
+            cond_int.append( new_input )
+        #Find output for generated condition
+        #output = 0
+        for i in range(0, self.half_length):
+            a = 0
+            b = 0
+            for j in range( self.parity_size ):
+                a += cond_int[ i * self.parity_size + j ]
+            a = 1-a%2
+            for j in range( self.parity_size ):
+                b += cond_int[ (i+self.half_length) * self.parity_size + j ]
+            b = 1-b%2
+            if a == b:
+                if a == 0:
+                    return [ condition, '0' ]
+                else:
+                    return [ condition, '1' ]
+        return [ condition, '0' ]
+
+
 class HiddenMultiplexer( DataGenerator ):
     def __init__(self, sizes):
         """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
@@ -187,9 +230,9 @@ class HiddenMultiplexer( DataGenerator ):
                 if condition[ i * self.parity_size + j ] == '1':
                     count += 1
             if count % 2 == 0:
-                count = 0
-            else:
                 count = 1
+            else:
+                count = 0
             gates += str( count )
         gates_decimal = int( gates, 2 )
         output_parity_block = ( self.multiplexer_addr_size + gates_decimal ) * self.parity_size
@@ -198,9 +241,9 @@ class HiddenMultiplexer( DataGenerator ):
             if condition[ output_parity_block + i ] == '1':
                 count += 1
         if count % 2 == 0:
-            output = '0'
-        else:
             output = '1'
+        else:
+            output = '0'
         return [ condition, output ]
 
     def _findAddressSize(self, num_bits):
@@ -212,7 +255,7 @@ class HiddenMultiplexer( DataGenerator ):
         return None
 
 
-class ParityCountOne( DataGenerator ):
+class HiddenMajorityOn( DataGenerator ):
     def __init__(self, sizes):
         """ Initialize Paratiy - Count one data generator. Lowest level are blocks of data with same size.
         Their outputs are calculated by parity rule and then the outputs contribute to count one problems. """
@@ -240,9 +283,9 @@ class ParityCountOne( DataGenerator ):
                 if condition[ j * self.parity_size + k ] == '1':
                     counts[ j ] += 1
             if counts[ j ] % 2 == 0:
-                counts[ j ] = 0
-            else:
                 counts[ j ] = 1
+            else:
+                counts[ j ] = 0
         if sum( counts ) > self.countone_size / 2:
             output = '1'
         else:
