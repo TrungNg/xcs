@@ -336,7 +336,7 @@ class Classifier:
             return True
         return False
 
-    def isMoreGeneral(self,cl):
+    def isMoreGeneral(self, cl):
         """ Returns if the classifier (self) is more general than cl. Check that all attributes specified in self are also specified in cl. """
         if len(self.specified_attributes) >= len(cl.specified_attributes):# and self.action != cl.action and self.prediction < cl.prediction and self.error > cl.error:
             return False
@@ -344,6 +344,21 @@ class Classifier:
             if self.specified_attributes[i] not in cl.specified_attributes:
                 return False
         return True
+
+    def compactSubsumes(self, cl):
+        """ Returns whether the classifier (self) subsumes cl (in compacting). """
+        if len(self.specified_attributes) > len(cl.specified_attributes):# and self.action != cl.action and self.prediction < cl.prediction and self.error > cl.error:
+            return False
+        if cl.action == self.action:
+            for i in range( len(self.specified_attributes) ):
+                if self.specified_attributes[i] not in cl.specified_attributes:
+                    return False
+                else:
+                    j = cl.specified_attributes.index( self.specified_attributes[i] )
+                    if self.condition[i] != cl.condition[j]:
+                        return False
+            return True
+        return False
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     # DELETION METHOD

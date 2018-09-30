@@ -148,12 +148,14 @@ class ClassifierSet:
         considering the deletion vote. Returns the macro-classifier which got decreased by one micro-classifier. """
         mean_fitness = self.getPopFitnessSum()/float(self.micro_size)
         #Calculate total wheel size------------------------------
+        set_size = len(self.pop_set)
         vote_sum = 0.0
-        vote_list = []
-        for cl in self.pop_set:
+        vote_list = [0.0] * set_size
+        for i in range(set_size):
+            cl = self.pop_set[i]
             vote = cl.getDelProb(mean_fitness)
             vote_sum += vote
-            vote_list.append(vote)
+            vote_list[i] = vote
         #--------------------------------------------------------
         choice_point = vote_sum * random.random() #Determine the choice point
         new_sum = 0.0
@@ -554,11 +556,8 @@ class ClassifierSet:
     def runAttGeneralitySum(self, is_eval_summary):
         """ Determine the population-wide frequency of attribute specification, and accuracy weighted specification.  Used in complete rule population evaluations. """
         if is_eval_summary:
-            self.attribute_spec_list = []
-            self.attribute_acc_list = []
-            for _ in range(cons.env.format_data.numb_attributes):
-                self.attribute_spec_list.append(0)
-                self.attribute_acc_list.append(0.0)
+            self.attribute_spec_list = [0] * cons.env.format_data.numb_attributes
+            self.attribute_acc_list = [0.0] * cons.env.format_data.numb_attributes
             for cl in self.pop_set:
                 for ref in cl.specified_attributes: #for each attRef
                     self.attribute_spec_list[ref] += cl.numerosity
@@ -578,3 +577,30 @@ class ClassifierSet:
         if self.pop_set[ i ].match( self.current_instance ):
             return i
         return None
+
+    def compact(self):
+        """ Compact the population. """
+        ### Remove inexperienced and inaccurate classifiers -------------------------
+        i = 0
+        while i < len(self.pop_set):
+            cl = self.pop_set[i]
+            if cl.action_cnt <= 100 or cl.error >= 0.0001:
+                self.removeMacroClassifier(i)
+            else:
+                i += 1
+        ### Subsume overspecific classifiers ----------------------------------------
+        i = 0
+        while i < len(self.pop_set):
+            j = i + 1
+            while j < len(self.pop_set):
+                if self.pop_set[i].compactSubsumes( self.pop_set[j] ):
+                    self.pop_set[i].numerosity += self.pop_set[j].numerosity
+                    self.pop_set.pop(j)
+                    continue
+                elif self.pop_set[j].compactSubsumes( self.pop_set[i] ):
+                    self.pop_set[j].numerosity += self.pop_set[i].numerosity
+                    self.pop_set.pop(i)
+                    i -= 1
+                    break
+                j += 1
+            i += 1

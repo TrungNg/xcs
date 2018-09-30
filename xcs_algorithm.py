@@ -149,6 +149,10 @@ class XCS:
         # Once XCS has reached the last learning iteration, close the tracking file
         self.learn_track.close()
         print("XCS Run Complete")
+        print("Compacting...")
+        self.population.compact()
+        OutputFileManager().writePopStats(cons.out_file+"_compacted", train_eval, test_eval, self.iteration, self.population, self.tracked_results)
+        OutputFileManager().writePop(cons.out_file+"_compacted", self.iteration, self.population)
 
 
     def runExploit(self, state_action):
