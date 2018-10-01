@@ -473,7 +473,7 @@ class Classifier:
         else:
             classifier_info += '{0:>3}'.format(self.action[0])+';'+'{0:>3}'.format(self.action[1])+"\t"
         #------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-        classifier_info += '{0:>6.1f}'.format(self.prediction)+'\t'+'{0:>6.1f}'.format(self.error)+'\t'+'{0:>5.3f}'.format(self.fitness)+"\t"+'{0:>4}'.format(self.numerosity)+'\t'+'{0:>5}'.format(self.ga_count)+'\t'
+        classifier_info += '{0:>6.1f}'.format(self.prediction)+'\t'+'{0:>6.1f}'.format(self.error)+'\t'+'{0:>5.3f}'.format(self.fitness)+"\t"+'{0:>4}'.format(self.numerosity)+'\t'
         classifier_info += '{0:>6.1f}'.format(self.avg_actionset_size)+'\t'+'{0:>8}'.format(self.ga_timestamp)+'\t'+'{0:>8}'.format(self.init_timestamp)+'\t'+'{:.2f}'.format(specificity)+'\t'
         classifier_info += '{:>10.1f}'.format(self.delete_vote)+'\t'+'{:>8}'.format(self.action_cnt)+'\n'
 
