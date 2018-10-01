@@ -79,7 +79,9 @@ class XCS:
             # -------------------------------------------------------
             # GET NEW INSTANCE AND RUN A LEARNING ITERATION
             # -------------------------------------------------------
+            cons.timer.startTimeDataGenerating()
             state_action = cons.env.getTrainInstance()
+            cons.timer.stopTimeDataGenerating()
             if explorer == 1:
                 self.runIteration( state_action )
             else:

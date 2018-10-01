@@ -12,7 +12,7 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 #Import Required Modules--------------------------------------
 from xcs_constants import *
 #import crandom as random
-#import random
+import random
 #-------------------------------------------------------------
 
 
@@ -76,10 +76,10 @@ class MulplexerGenerator( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
+        condition = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+        for i in range( self.numb_attributes ):
+            condition[i] = str( random.randint( 0, 1 ) )
 
         gates=""
         for j in range( self.address_size ):
@@ -108,10 +108,10 @@ class MajorityOnGenerator( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
+        condition = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+        for i in range( self.numb_attributes ):
+            condition[i] = str( random.randint(0, 1) )
         #Find output for generated condition
         counts = 0
         for att in condition:
@@ -138,13 +138,13 @@ class CarryGenerator( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
-        cond_int = []
+        condition = [None] * self.numb_attributes
+        cond_int = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            new_input = random.randint( 0, 1 )
-            condition.append( str( new_input ) )
-            cond_int.append( new_input )
+        for i in range( self.numb_attributes ):
+            new_input = random.randint(0, 1)
+            condition[i] = str(new_input)
+            cond_int[i] = new_input
         #Find output for generated condition
         #output = 0
         for i in range(0, self.half_length):
@@ -173,13 +173,13 @@ class HiddenCarryGenerator( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
-        cond_int = []
+        condition = [None] * self.numb_attributes
+        cond_int = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            new_input = random.randint( 0, 1 )
-            condition.append( str( new_input ) )
-            cond_int.append( new_input )
+        for i in range( self.numb_attributes ):
+            new_input = random.randint(0, 1)
+            condition[i] = str(new_input)
+            cond_int[i] = new_input
         #Find output for generated condition
         #output = 0
         for i in range(0, self.half_length):
@@ -219,10 +219,10 @@ class HiddenMultiplexer( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
-        condition = []
+        condition = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.numb_attributes ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+        for i in range( self.numb_attributes ):
+            condition[i] = str( random.randint(0, 1) )
         gates=""
         for i in range( self.multiplexer_addr_size ):
             count = 0
@@ -272,10 +272,10 @@ class HiddenMajorityOn( DataGenerator ):
 
     def generateInstance(self):
         """ Generate and return new instance with correct output. """
-        condition = []
+        condition = [None] * self.numb_attributes
         #Generate random boolean string
-        for _ in range( self.parity_size * self.countone_size ):
-            condition.append( str( random.randint( 0, 1 ) ) )
+        for i in range( self.parity_size * self.countone_size ):
+            condition[i] = str( random.randint(0, 1) )
         counts=[]
         for j in range( self.countone_size ):
             counts.append( 0 )
