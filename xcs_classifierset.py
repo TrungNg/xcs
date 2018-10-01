@@ -586,6 +586,7 @@ class ClassifierSet:
             cl = self.pop_set[i]
             if cl.action_cnt <= 100 or cl.error >= 0.0001:
                 self.removeMacroClassifier(i)
+                self.micro_size -= 1
             else:
                 i += 1
         ### Subsume overspecific classifiers ----------------------------------------
