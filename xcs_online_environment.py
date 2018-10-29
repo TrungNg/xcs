@@ -22,6 +22,7 @@ class Online_Environment:
         self.data_ref = 0
         self.saved_dat_ref = 0
         options={ 'multiplexer':MulplexerGenerator,
+                  'even_parity':EvenParityGenerator,
                   'hidden_multiplexer':HiddenMultiplexer,
                   'hidden_carry':HiddenCarryGenerator,
                   'majorityon':MajorityOnGenerator,
@@ -287,6 +288,34 @@ class HiddenMajorityOn( DataGenerator ):
             else:
                 counts[ j ] = 0
         if sum( counts ) > self.countone_size / 2:
+            output = '1'
+        else:
+            output = '0'
+        return [ condition, output ]
+
+
+class EvenParityGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
+        self.headers = []
+        for i in range( sizes[0] ):
+            self.headers.append( 'B' + str(i) )
+        super().__init__(sizes)
+
+    def generateInstance(self):
+        """ Return new Multiplexer instance of size provided by generating randomly. """
+        condition = [0] * self.numb_attributes
+        cond_int = [0] * self.numb_attributes
+        count = 0
+        #Generate random boolean string
+        for i in range( self.numb_attributes ):
+            att = random.randint(0,1)
+            condition[i] = str( att )
+            cond_int[i] = att
+        for j in range( self.numb_attributes ):
+            count += cond_int[j]
+
+        if count % 2 == 0:
             output = '1'
         else:
             output = '0'
