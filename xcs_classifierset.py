@@ -578,30 +578,31 @@ class ClassifierSet:
             return i
         return None
 
-    def compact(self):
+    def finalise(self, do_compact=False):
         """ Compact the population. """
         ### Remove inexperienced and inaccurate classifiers -------------------------
         i = 0
         while i < len(self.pop_set):
             cl = self.pop_set[i]
-            if cl.action_cnt <= 100 or cl.error >= 0.0001:
+            if cl.action_cnt <= cons.theta_del or cl.error >= 0.0001:
                 self.micro_size -= cl.numerosity
                 self.pop_set.pop(i)
             else:
                 i += 1
         ### Subsume overspecific classifiers ----------------------------------------
-        i = 0
-        while i < len(self.pop_set):
-            j = i + 1
-            while j < len(self.pop_set):
-                if self.pop_set[i].compactSubsumes( self.pop_set[j] ):
-                    self.pop_set[i].numerosity += self.pop_set[j].numerosity
-                    self.pop_set.pop(j)
-                    continue
-                elif self.pop_set[j].compactSubsumes( self.pop_set[i] ):
-                    self.pop_set[j].numerosity += self.pop_set[i].numerosity
-                    self.pop_set.pop(i)
-                    i -= 1
-                    break
-                j += 1
-            i += 1
+        if do_compact:
+            i = 0
+            while i < len(self.pop_set):
+                j = i + 1
+                while j < len(self.pop_set):
+                    if self.pop_set[i].compactSubsumes( self.pop_set[j] ):
+                        self.pop_set[i].numerosity += self.pop_set[j].numerosity
+                        self.pop_set.pop(j)
+                        continue
+                    elif self.pop_set[j].compactSubsumes( self.pop_set[i] ):
+                        self.pop_set[j].numerosity += self.pop_set[i].numerosity
+                        self.pop_set.pop(i)
+                        i -= 1
+                        break
+                    j += 1
+                i += 1
