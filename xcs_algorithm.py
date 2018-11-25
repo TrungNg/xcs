@@ -21,13 +21,18 @@ from xcs_prediction import *
 
 #------------------------------------------------------
 class XCS:
-    def __init__(self):
+    def __init__(self, kfold_i=''):
         """ Initializes the XCS algorithm """
         print("XCS: Initializing Algorithm...")
         #Global Parameters-------------------------------------------------------------------------------------
         self.population = None          # The rule population (the 'solution/model' evolved by XCS)
         self.learn_track = None       # Output file that will store tracking information during learning
         self.pool = None
+        self.kfold_set = kfold_i
+        if kfold_i != '':
+            self.prefix_out_file = cons.out_file+'_'+self.kfold_set
+        else:
+            self.prefix_out_file = cons.out_file
         if cons.multiprocessing:
             self.pool = Pool( processes=cpu_count() )
         #-------------------------------------------------------
@@ -41,12 +46,12 @@ class XCS:
         #-------------------------------------------------------
         else:
             try:
-                self.learn_track = open(cons.out_file+'_LearnTrack.txt','w')
+                self.learn_track = open(self.prefix_out_file+'_LearnTrack.txt','w')
             except Exception as inst:
                 print(type(inst))
                 print(inst.args)
                 print(inst)
-                print('cannot open', cons.out_file+'_LearnTrack.txt')
+                print('cannot open', self.prefix_out_file+'_LearnTrack.txt')
                 raise
             else:
                 self.learn_track.write("Explore_Iteration\tMacroPopSize\tMicroPopSize\tAccuracy_Estimate\tAveGenerality\tExpRules\tTime(min)\n")
@@ -60,11 +65,8 @@ class XCS:
             else:
                 self.tracked_results = []
 
-        #Run the XCS algorithm-------------------------------------------------------------------------------
-        self.run_XCS()
 
-
-    def run_XCS(self):
+    def run(self):
         """ Runs the initialized XCS algorithm. """
         #--------------------------------------------------------------
         print("Learning Checkpoints: " +str(cons.iter_checkpoints))
@@ -117,19 +119,19 @@ class XCS:
                 self.population.runPopAveEval()
                 self.population.runAttGeneralitySum(True)
                 cons.env.startEvaluationMode()  #Preserves learning position in training data
-                if cons.test_file != 'None': #If a testing file is available.
+                if cons.test_file != 'None' or cons.kfold_cv > 0: #If a testing file is available.
                     if cons.env.format_data.discrete_action:
                         train_eval = self.doPopEvaluation(True)
-                        test_eval = self.doPopEvaluation(False)
+                        ret_eval = test_eval = self.doPopEvaluation(False)
                     else:
                         train_eval = self.doContPopEvaluation(True)
-                        test_eval = self.doContPopEvaluation(False)
+                        ret_eval = test_eval = self.doContPopEvaluation(False)
                 else:  #Only a training file is available
                     if cons.env.format_data.discrete_action:
-                        train_eval = self.doPopEvaluation(True)
+                        ret_eval = train_eval = self.doPopEvaluation(True)
                         test_eval = None
                     else:
-                        train_eval = self.doContPopEvaluation(True)
+                        ret_eval = train_eval = self.doContPopEvaluation(True)
                         test_eval = None
 
                 cons.env.stopEvaluationMode() #Returns to learning position in training data
@@ -137,8 +139,8 @@ class XCS:
                 cons.timer.returnGlobalTimer()
 
                 #Write output files----------------------------------------------------------------------------------------------------------
-                OutputFileManager().writePopStats(cons.out_file, train_eval, test_eval, self.iteration, self.population, self.tracked_results)
-                OutputFileManager().writePop(cons.out_file, self.iteration, self.population)
+                OutputFileManager().writePopStats(self.prefix_out_file, train_eval, test_eval, self.iteration, self.population, self.tracked_results)
+                OutputFileManager().writePop(self.prefix_out_file, self.iteration, self.population)
                 #----------------------------------------------------------------------------------------------------------------------------
 
                 print("Continue Learning...")
@@ -153,8 +155,9 @@ class XCS:
         print("XCS Run Complete")
         print("Compacting...")
         self.population.finalise()
-        OutputFileManager().writePopStats(cons.out_file+"_finalised", train_eval, test_eval, self.iteration, self.population, self.tracked_results)
-        OutputFileManager().writePop(cons.out_file+"_finalised", self.iteration, self.population)
+        OutputFileManager().writePopStats(self.prefix_out_file+'_finalised', train_eval, test_eval, self.iteration, self.population, self.tracked_results)
+        OutputFileManager().writePop(self.prefix_out_file+'_finalised', self.iteration, self.population)
+        return ret_eval
 
 
     def runExploit(self, state_action):
@@ -222,8 +225,10 @@ class XCS:
     def doPopEvaluation(self, is_train):
         """ Performs a complete evaluation of the current rule population.  The population is unchanged throughout this evaluation. Works on both training and testing data. """
         if is_train:
+            instances = cons.env.format_data.numb_train_instances
             my_type = "TRAINING"
         else:
+            instances = cons.env.format_data.numb_test_instances
             my_type = "TESTING"
         no_match = 0                     # How often does the population fail to have a classifier that matches an instance in the data.
         tie = 0                         # How often can the algorithm not make a decision between classes due to a tie.
@@ -233,11 +238,6 @@ class XCS:
         class_accuracies = {}
         for each in phenotype_list:
             class_accuracies[each] = ClassAccuracy()
-        #----------------------------------------------
-        if is_train:
-            instances = cons.env.format_data.numb_train_instances
-        else:
-            instances = cons.env.format_data.numb_test_instances
         #----------------------------------------------------------------------------------------------
         for _ in range(instances):
             if is_train:
@@ -290,7 +290,8 @@ class XCS:
         covered_instances = 1.0 - prediction_fail
         prediction_made = 1.0 - (prediction_fail + prediction_ties)
 
-        adjusted_accuracy = (accuracy * prediction_made) + ((1.0 - prediction_made) * (1.0 / float(len(phenotype_list))))
+        standard_accuracy = accuracy * prediction_made
+        adjusted_accuracy = standard_accuracy + ((1.0 - prediction_made) * (1.0 / float(len(phenotype_list))))
         adjusted_balanced_accuracy = (balanced_accuracy * prediction_made) + ((1.0 - prediction_made) * (1.0 / float(len(phenotype_list))))
 
         #Adjusted Balanced Accuracy is calculated such that instances that did not match have a consistent probability of being correctly classified in the reported accuracy.
@@ -299,11 +300,11 @@ class XCS:
         print("Instance Coverage = "+ str(covered_instances*100.0)+ '%')
         print("Prediction Ties = "+ str(prediction_ties*100.0)+ '%')
         print(str(correct_cases) + ' out of ' + str(instances) + ' instances covered and correctly classified.')
+        print("Standard Accuracy = " + str(standard_accuracy))
         print("Standard Accuracy (Adjusted) = " + str(adjusted_accuracy))
         print("Balanced Accuracy (Adjusted) = " + str(adjusted_balanced_accuracy))
         #Balanced and Standard Accuracies will only be the same when there are equal instances representative of each phenotype AND there is 100% covering.
-        result = [adjusted_balanced_accuracy, covered_instances]
-        return result
+        return [adjusted_balanced_accuracy, covered_instances]
 
 
     def doContPopEvaluation(self, is_train):
@@ -357,8 +358,7 @@ class XCS:
         print("Estimated Prediction Accuracy (Ignore uncovered) = " + str(accuracy_estimate))
         print("Estimated Prediction Accuracy (Penalty uncovered) = " + str(adjusted_accuracy_estimate))
         #Balanced and Standard Accuracies will only be the same when there are equal instances representative of each phenotype AND there is 100% covering.
-        result_list = [adjusted_accuracy_estimate, covered_instances]
-        return result_list
+        return [adjusted_accuracy_estimate, covered_instances]
 
 
     def populationReboot(self):

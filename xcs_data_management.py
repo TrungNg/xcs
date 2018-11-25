@@ -1,6 +1,6 @@
 """
 Name:        xcs_data_management.py
-Authors:     Bao Trung
+Authors:     Bao Trung, based on eLCS by R. Urbanowicz
 Contact:     baotrung@ecs.vuw.ac.nz
 Created:     July, 2017
 Description:
@@ -9,19 +9,16 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 """
-
 #Import Required Modules---------------
-from xcs_constants import cons
-#import crandom as random
 import random
-#import sys
+from xcs_constants import cons
 #--------------------------------------
 
 class DataManagement:
     def __init__(self, train_file, test_file):
         #Initialize global variables-------------------------------------------------
         self.numb_attributes = None       # The number of attributes in the input file.
-        self.has_ID_column = False     # Does the dataset contain a column of Instance IDs? (If so, it will not be included as an attribute)
+        self.are_instanceIDs = False     # Does the dataset contain a column of Instance IDs? (If so, it will not be included as an attribute)
         self.instanceID_ref = None       # The column reference for Instance IDs
         self.action_ref = None        # The column reference for the Class/Phenotype column
         self.discrete_action = True   # Is the Class/Phenotype Discrete? (False = Continuous)
@@ -46,20 +43,20 @@ class DataManagement:
         self.characterizeDataset(raw_train_data)  #Detect number of attributes, instances, and reference locations.
 
         if cons.test_file == 'None': #If no testing data is available, formatting relies solely on training data.
-            for_formatting = raw_train_data
+            tobe_formatted = raw_train_data
         else:
             raw_test_data = self.loadData(test_file, False) #Load the raw data.
             self.compareDataset(raw_test_data) #Ensure that key features are the same between training and testing datasets.
-            for_formatting = raw_train_data + raw_test_data #Merge Training and Testing datasets
+            tobe_formatted = raw_train_data + raw_test_data #Merge Training and Testing datasets
 
-        self.discriminatePhenotype(for_formatting) #Determine if endpoint/phenotype is discrete or continuous.
+        self.discriminatePhenotype(tobe_formatted) #Determine if endpoint/phenotype is discrete or continuous.
         if self.discrete_action:
-            self.discriminateClasses(for_formatting) #Detect number of unique phenotype identifiers.
+            self.discriminateClasses(tobe_formatted) #Detect number of unique phenotype identifiers.
         else:
-            self.characterizePhenotype(for_formatting)
+            self.characterizePhenotype(tobe_formatted)
 
-        self.discriminateAttributes(for_formatting) #Detect whether attributes are discrete or continuous.
-        self.characterizeAttributes(for_formatting) #Determine potential attribute states or ranges.
+        self.discriminateAttributes(tobe_formatted) #Detect whether attributes are discrete or continuous.
+        self.characterizeAttributes(tobe_formatted) #Determine potential attribute states or ranges.
 
         #Format and Shuffle Datasets----------------------------------------------------------------------------------------
         if cons.test_file != 'None':
@@ -69,10 +66,10 @@ class DataManagement:
         print("----------------------------------------------------------------------------")
 
 
-    def loadData(self, dat_file, is_train):
+    def loadData(self, dat_file, do_train):
         """ Load the data file. """
         print("DataManagement: Loading Data... " + str(dat_file))
-        read_data = []
+        dataset_list = []
         try:
             f = open(dat_file,'r')
         except Exception as inst:
@@ -82,23 +79,23 @@ class DataManagement:
             print('cannot open', dat_file)
             raise
         else:
-            if is_train:
+            if do_train:
                 self.train_headers = f.readline().rstrip('\n').split('\t')   #strip off first row
             else:
                 self.test_headers = f.readline().rstrip('\n').split('\t')   #strip off first row
             for line in f:
-                line_elements = line.strip('\n').split('\t')
-                read_data.append(line_elements)
+                line_list = line.strip('\n').split('\t')
+                dataset_list.append(line_list)
             f.close()
 
-        return read_data
+        return dataset_list
 
 
     def characterizeDataset(self, raw_train_data):
         " Detect basic dataset parameters "
         #Detect Instance ID's and save location if they occur.  Then save number of attributes in data.
         if cons.ID_label in self.train_headers:
-            self.has_ID_column = True
+            self.are_instanceIDs = True
             self.instanceID_ref = self.train_headers.index(cons.ID_label)
             print("DataManagement: Instance ID Column location = "+str(self.instanceID_ref))
             self.numb_attributes = len(self.train_headers)-2 #one column for InstanceID and another for the phenotype.
@@ -113,7 +110,7 @@ class DataManagement:
             print("DataManagement: Error - Phenotype column not found!  Check data set to ensure correct phenotype column label, or inclusion in the data.")
 
         #Adjust training header list to just include attributes labels
-        if self.has_ID_column:
+        if self.are_instanceIDs:
             if self.action_ref > self.instanceID_ref:
                 self.train_headers.pop(self.action_ref)
                 self.train_headers.pop(self.instanceID_ref)
@@ -124,9 +121,10 @@ class DataManagement:
             self.train_headers.pop(self.action_ref)
 
         #Store number of instances in training data
-        self.numb_train_instances = len(raw_train_data)
         print("DataManagement: Number of Attributes = " + str(self.numb_attributes))
-        print("DataManagement: Number of Instances = " + str(self.numb_train_instances))
+        self.numb_train_instances = len(raw_train_data)
+        if cons.kfold_cv == 0:
+            print("DataManagement: Number of Instances = " + str(self.numb_train_instances))
 
 
     def discriminatePhenotype(self, raw_data):
@@ -157,23 +155,23 @@ class DataManagement:
         """ Determines number of classes and their identifiers. Only used if phenotype is discrete. """
         print("DataManagement: Detecting Classes...")
         inst = 0
-        class_cnt = {}
+        class_count = {}
         while inst < self.numb_train_instances:
             target = raw_data[inst][self.action_ref]
-            if target in self.action_list:
-                class_cnt[target] += 1
+            if int(target) in self.action_list:
+                class_count[target] += 1
             else:
-                self.action_list.append(target)
-                class_cnt[target] = 1
+                self.action_list.append( int(target) )
+                class_count[target] = 1
             inst += 1
         print("DataManagement: Following Classes Detected:" + str(self.action_list))
-        for each in list(class_cnt.keys()):
-            print("Class: "+str(each)+ " count = "+ str(class_cnt[each]))
+        for each in list(class_count.keys()):
+            print("Class: "+str(each)+ " count = "+ str(class_count[each]))
 
 
     def compareDataset(self, raw_test_data):
         " Ensures that the attributes in the testing data match those in the training data.  Also stores some information about the testing data. "
-        if self.has_ID_column:
+        if self.are_instanceIDs:
             if self.action_ref > self.instanceID_ref:
                 self.test_headers.pop(self.action_ref)
                 self.test_headers.pop(self.instanceID_ref)
@@ -195,14 +193,14 @@ class DataManagement:
     def discriminateAttributes(self, raw_data):
         """ Determine whether attributes in dataset are discrete or continuous and saves this information. """
         print("DataManagement: Detecting Attributes...")
-        self.discrete_cnt = 0
-        self.continuous_cnt = 0
+        self.discrete_count = 0
+        self.continuous_count = 0
         for att in range(len(raw_data[0])):
             if att != self.instanceID_ref and att != self.action_ref:  #Get just the attribute columns (ignores phenotype and instanceID columns)
-                attIsDiscrete = True
+                is_att_discrete = True
                 inst = 0
                 state_dict = {}
-                while attIsDiscrete and len(list(state_dict.keys())) <= cons.discrete_attribute_limit and inst < self.numb_train_instances:  #Checks which discriminate between discrete and continuous attribute
+                while is_att_discrete and len(list(state_dict.keys())) <= cons.discrete_attribute_limit and inst < self.numb_train_instances:  #Checks which discriminate between discrete and continuous attribute
                     target = raw_data[inst][att]
                     if target in list(state_dict.keys()):  #Check if we've seen this attribute state yet.
                         state_dict[target] += 1
@@ -213,14 +211,14 @@ class DataManagement:
                     inst += 1
 
                 if len(list(state_dict.keys())) > cons.discrete_attribute_limit:
-                    attIsDiscrete = False
-                if attIsDiscrete:
+                    is_att_discrete = False
+                if is_att_discrete:
                     self.attribute_info.append([0,[]])
-                    self.discrete_cnt += 1
+                    self.discrete_count += 1
                 else:
                     self.attribute_info.append([1,[float(target),float(target)]])   #[min,max]
-                    self.continuous_cnt += 1
-        print("DataManagement: Identified "+str(self.discrete_cnt)+" discrete and "+str(self.continuous_cnt)+" continuous attributes.") #Debug
+                    self.continuous_count += 1
+        print("DataManagement: Identified "+str(self.discrete_count)+" discrete and "+str(self.continuous_count)+" continuous attributes.") #Debug
 
 
     def characterizeAttributes(self, raw_data):
@@ -276,7 +274,7 @@ class DataManagement:
             formatted.append([None,None,None]) #[Attribute States, Phenotype, InstanceID]
 
         for inst in range(len(raw_data)):
-            state_list = []
+            state_list = [0] * self.numb_attributes
             attributeID = 0
             for att in range(len(raw_data[0])):
                 if att != self.instanceID_ref and att != self.action_ref:  #Get just the attribute columns (ignores phenotype and instanceID columns)
@@ -284,23 +282,64 @@ class DataManagement:
 
                     if self.attribute_info[attributeID][0]: #If the attribute is continuous
                         if target == cons.missing_label:
-                            state_list.append(target) #Missing data saved as text label
+                            state_list[attributeID] = target #Missing data saved as text label
                         else:
-                            state_list.append(float(target)) #Save continuous data as floats.
+                            state_list[attributeID] = float(target) #Save continuous data as floats.
                     else: #If the attribute is discrete - Format the data to correspond to the GABIL (DeJong 1991)
-                        state_list.append(target) #missing data, and discrete variables, all stored as string objects
+                        if target == cons.missing_label:
+                            state_list[attributeID] = target
+                        else:
+                            state_list[attributeID] = int(target) #missing data, and discrete variables, all stored as string objects
                     attributeID += 1
 
             #Final Format-----------------------------------------------
             formatted[inst][0] = state_list                           #Attribute states stored here
             if self.discrete_action:
-                formatted[inst][1] = raw_data[inst][self.action_ref]        #phenotype stored here
+                formatted[inst][1] = int( raw_data[inst][self.action_ref] )       #phenotype stored here
             else:
-                formatted[inst][1] = float(raw_data[inst][self.action_ref])
-            if self.has_ID_column:
-                formatted[inst][2] = raw_data[inst][self.instanceID_ref]   #Instance ID stored here
+                formatted[inst][1] = float( raw_data[inst][self.action_ref] )
+            if self.are_instanceIDs:
+                formatted[inst][2] = int( raw_data[inst][self.instanceID_ref] )   #Instance ID stored here
             else:
                 pass    #instance ID neither given nor required.
             #-----------------------------------------------------------
         random.shuffle(formatted) #One time randomization of the order the of the instances in the data, so that if the data was ordered by phenotype, this potential learning bias (based on instance ordering) is eliminated.
         return formatted
+
+    def splitFolds(self, kfold=10):
+        """ divide data set into kfold sets. """
+        data_size = len( self.formatted_train_data )
+        class_counts = [0] * len(self.action_list)
+        for instance in self.formatted_train_data:
+            class_counts[ self.action_list.index(instance[1]) ] += 1
+        fold_size = int( data_size/kfold )
+        split_again = True
+        while split_again:
+            split_again = False
+            self.folds = [[] for _ in range(kfold)]
+            start_point = 0
+            for i in range(kfold):
+                end_point = start_point + fold_size
+                if i < data_size%kfold:
+                    end_point += 1
+                self.folds[i] = self.formatted_train_data[start_point:end_point]
+                start_point = end_point
+                fold_class_counts = [0] * len(self.action_list)
+                for instance in self.folds[i]:
+                    fold_class_counts[ self.action_list.index(instance[1]) ] += 1
+                for j in range( len(self.action_list) ):
+                    if fold_class_counts[j] == class_counts[j]:
+                        random.shuffle( self.formatted_train_data )
+                        split_again = True
+
+    def selectTrainTestSets(self, fold):
+        """ select subset for testing and the rest for training. """
+        self.formatted_train_data = []
+        for i in range( len(self.folds) ):
+            if i != fold:
+                self.formatted_train_data += self.folds[i]
+        self.formatted_test_data = self.folds[fold]
+        self.numb_train_instances = len(self.formatted_train_data)
+        self.numb_test_instances = len(self.formatted_test_data)
+        print("DataManagement: Number of Instances = " + str(self.numb_train_instances))
+        print("DataManagement: Number of Instances = " + str(self.numb_test_instances))

@@ -21,6 +21,7 @@ from xcs_algorithm import XCS
 from xcs_constants import cons
 from xcs_online_environment import Online_Environment
 from sys import argv
+from statistics import mean
 #-----------------------------------------------------------
 #Function to parse arguments--------------------------------
 def getOptions( argv ):
@@ -79,7 +80,16 @@ if cons.online_data_generator:
 else:
     env = Offline_Environment()
 cons.referenceEnv( env ) #Passes the environment to 'Constants' (cons) so that it can be easily accessed from anywhere within the code.
-cons.parseIterations() #Identify the maximum number of learning iterations as well as evaluation checkpoints.
 
 #Run the e-LCS algorithm.
-XCS()
+if not cons.online_data_generator and cons.kfold_cv > 0:
+    env.format_data.splitFolds(cons.kfold_cv)
+    accuracies = [0.0] * cons.kfold_cv
+    for i in range(cons.kfold_cv):
+        env.format_data.selectTrainTestSets(i)
+        cons.parseIterations()  # Identify the maximum number of learning iterations as well as evaluation checkpoints.
+        accuracies[i], _ = XCS(str(i)).run()
+    print("AVERAGE ACCURACY After " + str(cons.kfold_cv) + "-FOLD CROSS VALIDATION is " + str( mean(accuracies) ))
+else:
+    cons.parseIterations()  # Identify the maximum number of learning iterations as well as evaluation checkpoints.
+    XCS().run()

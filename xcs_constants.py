@@ -15,18 +15,30 @@ class Constants:
         """ Takes the parameters parsed as a dictionary from xcs_config_parser and saves them as global constants. """
 
         # Major Run Parameters -----------------------------------------------------------------------------------------
+        self.outfile_dir = str(par['outFileDir'])                               #Saved as text
         self.online_data_generator = False if par[ 'onlineProblem' ].lower()=='false' else True     # Saved as Boolean
-        if self.online_data_generator == True:
+        self.train_file = par['trainFile']                                      # Saved as text
+        self.test_file = par['testFile']                                        # Saved as text
+        self.kfold_cv = 0
+        if self.online_data_generator:
             self.problem_name = par[ 'onlineProblem' ]
             sizes = par[ 'problemSizes' ].split( '.' )
             self.problem_sizes = [ 0 ] * 3
             for i in range( len( sizes ) ):
                 self.problem_sizes[ i ] = int( sizes[ i ] )
+            self.out_file = self.outfile_dir+'XCS_'+self.problem_name+'_'+str(self.problem_sizes)         #Saved as text
+        else:
+            if par['kfold'].lower() != 'false':
+                self.kfold_cv = int( par['kfold'] )
+            if self.test_file == 'None':
+                train_file_without_dir = self.train_file.split('/')[-1]
+                self.out_file = self.outfile_dir+'XCS_'+train_file_without_dir        # Saved as text
+            else:
+                test_file_without_dir = self.test_file.split('/')[-1]
+                self.out_file = self.outfile_dir+'XCS_'+test_file_without_dir         # Saved as text
         self.multiprocessing = bool( int( par['multiprocessing'] ) )
         self.train_file = par['trainFile']                                      #Saved as text
         self.test_file = par['testFile']                                        #Saved as text
-        self.outfile_dir = str(par['outFileDir'])  # Saved as text
-        self.out_file = self.outfile_dir + 'XCS_' + self.problem_name + "_" + str(self.problem_sizes)  # Saved as text
         self.checkpoint_iter = par['learningIterations']                        #Saved as text
         self.extra_estimation = bool( int( par['extraEstimationRun'] ) )
         self.N = int(par['N'])                                                  #Saved as integer
@@ -87,6 +99,7 @@ class Constants:
     def referenceEnv(self, e):
         """ Store reference to environment object. """
         self.env = e
+        self.theta_mna = len( e.format_data.action_list )
 
 
     def parseIterations(self):
