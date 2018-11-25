@@ -268,8 +268,7 @@ class Classifier:
         if random.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
-            new_action = random.choice(action_list)
-            self.action = new_action
+            self.action = random.choice(action_list)
             changed= True
         return changed
 
@@ -280,8 +279,7 @@ class Classifier:
         if random.random() < cons.mu:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
-            new_action = random.choice(action_list)
-            self.action = new_action
+            self.action = random.choice(action_list)
             changed= True
         return changed
 
