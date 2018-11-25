@@ -13,8 +13,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 
 #Import Required Modules---------------
 from xcs_constants import *
-import crandom as random
-#import random
+#import crandom as random
+import random
 #import math
 #--------------------------------------
 
@@ -78,7 +78,7 @@ class Classifier:
         offspring based on parent classifiers."""
         self.specified_attributes = old_cl.specified_attributes[:]
         self.condition = old_cl.condition[:]
-        self.action = old_cl.action[:]
+        self.action = old_cl.action
         self.ga_timestamp = old_cl.ga_timestamp
         self.init_timestamp = old_cl.ga_timestamp
         self.avg_actionset_size = old_cl.avg_actionset_size
@@ -269,7 +269,7 @@ class Classifier:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
             new_action = random.choice(action_list)
-            self.action = new_action[0]
+            self.action = new_action
             changed= True
         return changed
 
@@ -281,7 +281,7 @@ class Classifier:
             action_list = cons.env.format_data.action_list[:]
             action_list.remove(self.action)
             new_action = random.choice(action_list)
-            self.action = new_action[0]
+            self.action = new_action
             changed= True
         return changed
 

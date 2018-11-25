@@ -12,8 +12,8 @@ Description:
 #Import Required Modules---------------------
 from xcs_constants import *
 from xcs_classifier import Classifier
-import crandom as random
-#import random
+#import crandom as random
+import random
 #--------------------------------------------
 
 class ClassifierSet:

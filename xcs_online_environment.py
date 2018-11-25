@@ -11,8 +11,8 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 """
 #Import Required Modules--------------------------------------
 from xcs_constants import *
-import crandom as random
-#import random
+#import crandom as random
+import random
 #-------------------------------------------------------------
 
 
@@ -21,7 +21,7 @@ class Online_Environment:
         #Initialize global variables-------------------------------------------------
         self.data_ref = 0
         self.saved_dat_ref = 0
-        options={ 'multiplexer':MulplexerGenerator,
+        options={ 'multiplexer':MultiplexerGenerator,
                   'even_parity':EvenParityGenerator,
                   'hidden_multiplexer':HiddenMultiplexer,
                   'hidden_carry':HiddenCarryGenerator,
@@ -61,10 +61,10 @@ class DataGenerator:
         self.numb_attributes = sizes[ 0 ]
         self.attribute_info = [ [ 0, [] ] ] * sizes[ 0 ]
         self.discrete_action = True
-        self.action_list = [ '0', '1' ]
+        self.action_list = [ 0, 1 ]
 
 
-class MulplexerGenerator( DataGenerator ):
+class MultiplexerGenerator( DataGenerator ):
     def __init__(self, sizes):
         """ Initialize online data generator for Multiplexer problem (maximum address bit size is 1000). """
         self.address_size = self._findAddressSize( sizes[ 0 ] )
@@ -80,14 +80,12 @@ class MulplexerGenerator( DataGenerator ):
         condition = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            condition[i] = str( random.randint( 0, 1 ) )
-
-        gates=""
+            condition[i] = random.randint( 0, 1 )
+        gates = 0
         for j in range( self.address_size ):
-            gates += condition[ j ]
-        gates_decimal = int( gates, 2 )
-        output = condition[ self.address_size + gates_decimal ]
-
+            gates *= 2
+            gates += condition[j]
+        output = condition[ self.address_size + gates ]
         return [ condition, output ]
 
     def _findAddressSize(self, num_bits):
@@ -112,17 +110,10 @@ class MajorityOnGenerator( DataGenerator ):
         condition = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            condition[i] = str( random.randint(0, 1) )
+            condition[i] = random.randint(0, 1)
         #Find output for generated condition
-        counts = 0
-        for att in condition:
-            if att == '1':
-                counts += 1
-        if counts > self.numb_attributes / 2:
-            output = '1'
-        else:
-            output = '0'
-        return [ condition, output ]
+        count = sum( condition )
+        return [ condition, int( count > self.numb_attributes / 2 ) ]
 
 
 class CarryGenerator( DataGenerator ):
@@ -139,23 +130,17 @@ class CarryGenerator( DataGenerator ):
 
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
+        """ Return new Multiplexer instance of size provided by generating randomly. """
         condition = [None] * self.numb_attributes
-        cond_int = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            new_input = random.randint(0, 1)
-            condition[i] = str(new_input)
-            cond_int[i] = new_input
+            condition[i] = random.randint( 0, 1 )
         #Find output for generated condition
-        #output = 0
         for i in range(0, self.half_length):
             #output = int( ( output + cond_int[ half_condition-1-i ] + cond_int[ half_condition-1-i+half_condition ] ) / 2 )
-            if cond_int[i] == cond_int[ i+self.half_length ]:
-                if cond_int[i] == 0:
-                    return [ condition, '0' ]
-                else:
-                    return [ condition, '1' ]
-        return [ condition, '0' ]
+            if condition[i] == condition[ i+self.half_length ]:
+                return [ condition, condition[i] ]
+        return [ condition, 0 ]
 
 
 class HiddenCarryGenerator( DataGenerator ):
@@ -175,29 +160,21 @@ class HiddenCarryGenerator( DataGenerator ):
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
         condition = [None] * self.numb_attributes
-        cond_int = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            new_input = random.randint(0, 1)
-            condition[i] = str(new_input)
-            cond_int[i] = new_input
+            condition[i] = random.randint(0, 1)
         #Find output for generated condition
         #output = 0
         for i in range(0, self.half_length):
-            a = 0
-            b = 0
-            for j in range( self.parity_size ):
-                a += cond_int[ i * self.parity_size + j ]
+            parity_block_a = i*self.parity_size
+            parity_block_b = (i+self.half_length)*self.parity_size
+            a = sum( condition[ parity_block_a:( parity_block_a+self.parity_size ) ] )
+            b = sum( condition[ parity_block_b:( parity_block_b+self.parity_size ) ] )
             a = 1-a%2
-            for j in range( self.parity_size ):
-                b += cond_int[ (i+self.half_length) * self.parity_size + j ]
             b = 1-b%2
             if a == b:
-                if a == 0:
-                    return [ condition, '0' ]
-                else:
-                    return [ condition, '1' ]
-        return [ condition, '0' ]
+                return [ condition, a ]
+        return [ condition, 0 ]
 
 
 class HiddenMultiplexer( DataGenerator ):
@@ -223,29 +200,16 @@ class HiddenMultiplexer( DataGenerator ):
         condition = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            condition[i] = str( random.randint(0, 1) )
-        gates=""
+            condition[i] = random.randint(0, 1)
+        gates = 0
         for i in range( self.multiplexer_addr_size ):
-            count = 0
-            for j in range( self.parity_size ):
-                if condition[ i * self.parity_size + j ] == '1':
-                    count += 1
-            if count % 2 == 0:
-                count = 1
-            else:
-                count = 0
-            gates += str( count )
-        gates_decimal = int( gates, 2 )
-        output_parity_block = ( self.multiplexer_addr_size + gates_decimal ) * self.parity_size
-        count = 0
-        for i in range( self.parity_size ):
-            if condition[ output_parity_block + i ] == '1':
-                count += 1
-        if count % 2 == 0:
-            output = '1'
-        else:
-            output = '0'
-        return [ condition, output ]
+            parity_block = i * self.parity_size
+            count = sum( condition[ parity_block:( parity_block+self.parity_size ) ] )
+            gates *= 2
+            gates += 1 - count%2
+        output_parity_block = ( self.multiplexer_addr_size+gates ) * self.parity_size
+        count = sum( condition[ output_parity_block:( output_parity_block+self.parity_size ) ] )
+        return [ condition, int( count%2 == 0 ) ]
 
     def _findAddressSize(self, num_bits):
         for i in range( 1000 ):
@@ -276,22 +240,13 @@ class HiddenMajorityOn( DataGenerator ):
         condition = [None] * self.numb_attributes
         #Generate random boolean string
         for i in range( self.parity_size * self.countone_size ):
-            condition[i] = str( random.randint(0, 1) )
-        counts=[]
+            condition[i] = random.randint(0, 1)
+        parity_counts = [0] * self.countone_size
         for j in range( self.countone_size ):
-            counts.append( 0 )
-            for k in range( self.parity_size ):
-                if condition[ j * self.parity_size + k ] == '1':
-                    counts[ j ] += 1
-            if counts[ j ] % 2 == 0:
-                counts[ j ] = 1
-            else:
-                counts[ j ] = 0
-        if sum( counts ) > self.countone_size / 2:
-            output = '1'
-        else:
-            output = '0'
-        return [ condition, output ]
+            parity_block = j*self.parity_size
+            parity_counts[j] = sum( condition[ parity_block:( parity_block+self.parity_size ) ] )
+            parity_counts[j] = 1 - parity_counts[j] % 2
+        return [ condition, int( sum( parity_counts ) > self.countone_size / 2 ) ]
 
 
 class EvenParityGenerator( DataGenerator ):
@@ -305,18 +260,10 @@ class EvenParityGenerator( DataGenerator ):
     def generateInstance(self):
         """ Return new Multiplexer instance of size provided by generating randomly. """
         condition = [0] * self.numb_attributes
-        cond_int = [0] * self.numb_attributes
         count = 0
         #Generate random boolean string
         for i in range( self.numb_attributes ):
-            att = random.randint(0,1)
-            condition[i] = str( att )
-            cond_int[i] = att
+            condition[i] = random.randint(0,1)
         for j in range( self.numb_attributes ):
-            count += cond_int[j]
-
-        if count % 2 == 0:
-            output = '1'
-        else:
-            output = '0'
-        return [ condition, output ]
+            count += condition[j]
+        return [ condition, int( count%2 == 0 ) ]

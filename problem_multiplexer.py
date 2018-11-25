@@ -13,8 +13,8 @@ Additional Notes:
         Address Bits = 7 (135-Multiplexer)
         Address Bits = 8 (264-Multiplexer)
 '''
-import crandom as random
-#import random
+#import crandom as random
+import random
 
 def generate_mulitplexer_data(myfile, num_bits, instances):
     """ """
