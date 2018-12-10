@@ -23,10 +23,11 @@ class Online_Environment:
         self.saved_dat_ref = 0
         options={ 'multiplexer':MultiplexerGenerator,
                   'even_parity':EvenParityGenerator,
-                  'hidden_multiplexer':HiddenMultiplexer,
-                  'hidden_carry':HiddenCarryGenerator,
-                  'majorityon':MajorityOnGenerator,
                   'carry':CarryGenerator,
+                  'majorityon':MajorityOnGenerator,
+                  'hidden_multiplexer':HiddenMultiplexer,
+                  'hidden_parity':HiddenParityGenerator,
+                  'hidden_carry':HiddenCarryGenerator,
                   'hidden_majorityon':HiddenMajorityOn }
         self.format_data = options[ problem.lower() ]( sizes )
         print( "Problem: " + problem + " size " + str( sizes ) )
@@ -247,6 +248,33 @@ class HiddenMajorityOn( DataGenerator ):
             parity_counts[j] = sum( condition[ parity_block:( parity_block+self.parity_size ) ] )
             parity_counts[j] = 1 - parity_counts[j] % 2
         return [ condition, int( sum( parity_counts ) > self.countone_size / 2 ) ]
+
+
+class HiddenParityGenerator( DataGenerator ):
+    def __init__(self, sizes):
+        """ Initialize Hidden Parity, lowest level are blocks of data with same size (3).
+        Their outputs are calculated by parity rule and then the outputs contribute to a higher-level Parity problem. """
+        self.level_sizes = sizes[1:]
+        self.headers = []
+        if self.level_sizes[0] * self.level_sizes[1] != sizes[ 0 ]:
+            raise ValueError( "ParityCountOne.__init__() failed because of inappropriate sizes provided." )
+        for i in range( self.level_sizes[1] ):
+            prefix = 'B' + str( i )
+            for j in range( self.level_sizes[0] ):
+                self.headers.append( prefix + str( j ) )
+        super().__init__( sizes )
+
+    def generateInstance(self):
+        """ Generate and return new instance with correct output. """
+        condition = [None] * self.numb_attributes
+        #Generate random boolean string
+        for i in range( self.level_sizes[0] * self.level_sizes[1] ):
+            condition[i] = random.randint(0, 1)
+        parity_counts = [0] * self.level_sizes[1]
+        for j in range( self.level_sizes[1] ):
+            parity_block = j*self.level_sizes[0]
+            parity_counts[j] = 1 - sum( condition[ parity_block:( parity_block+self.level_sizes[0] ) ] ) % 2
+        return [ condition, 1 - sum( parity_counts ) % 2 ]
 
 
 class EvenParityGenerator( DataGenerator ):

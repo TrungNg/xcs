@@ -15,5 +15,5 @@ cp crandom.py cysrc/crandom.pyx
 cp rand.c cysrc/rand.c
 cp rand.h cysrc/rand.h
 
-#~/my_virtualenv/cython/bin/python3.6 setup.py build_ext --inplace
-python3.6 setup.py build_ext --inplace
+#~/my_virtualenv/cython/bin/python3 setup.py build_ext --inplace
+python3 setup.py build_ext --inplace
