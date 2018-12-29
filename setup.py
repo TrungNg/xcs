@@ -73,4 +73,4 @@ ext_modules = [
 ]
 
 setup(name="xcs",
-      ext_modules=cythonize(ext_modules))
+      ext_modules=cythonize(ext_modules,compiler_directives={"language_level": "3"}))
