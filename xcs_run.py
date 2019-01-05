@@ -83,15 +83,13 @@ cons.referenceEnv( env ) #Passes the environment to 'Constants' (cons) so that i
 
 #Run the e-LCS algorithm.
 if not cons.online_data_generator and cons.kfold_cv > 0:
-    total_instances = env.format_data.numb_train_instances
-    env.format_data.splitFolds2(cons.kfold_cv)
-    accurate_numbs = [0.0] * cons.kfold_cv
+    env.format_data.splitFolds(cons.kfold_cv)
+    accuracies = [0.0] * cons.kfold_cv
     for i in range(cons.kfold_cv):
         env.format_data.selectTrainTestSets(i)
         cons.parseIterations()  # Identify the maximum number of learning iterations as well as evaluation checkpoints.
-        accuracy = XCS(str(i)).run()[0]
-        accurate_numbs[i] = accuracy * env.format_data.numb_test_instances
-    print("AVERAGE ACCURACY After " + str(cons.kfold_cv) + "-FOLD CROSS VALIDATION is " + str( sum(accurate_numbs) / total_instances ))
+        accuracies[i], _ = XCS(str(i)).run()
+    print("AVERAGE ACCURACY After " + str(cons.kfold_cv) + "-FOLD CROSS VALIDATION is " + str( mean(accuracies) ))
 else:
     cons.parseIterations()  # Identify the maximum number of learning iterations as well as evaluation checkpoints.
     XCS().run()

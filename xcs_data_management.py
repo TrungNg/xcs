@@ -10,7 +10,6 @@ XCS: Michigan-style Learning Classifier System - A LCS for Reinforcement Learnin
 ---------------------------------------------------------------------------------------------------------------------------------------------------------
 """
 #Import Required Modules---------------
-from javarandom import Random as JRandom
 import random
 from xcs_constants import cons
 #--------------------------------------
@@ -18,7 +17,6 @@ from xcs_constants import cons
 class DataManagement:
     def __init__(self, train_file, test_file):
         #Initialize global variables-------------------------------------------------
-        self.jrnd = JRandom(0)
         self.numb_attributes = None       # The number of attributes in the input file.
         self.are_instanceIDs = False     # Does the dataset contain a column of Instance IDs? (If so, it will not be included as an attribute)
         self.instanceID_ref = None       # The column reference for Instance IDs
@@ -305,8 +303,7 @@ class DataManagement:
             else:
                 pass    #instance ID neither given nor required.
             #-----------------------------------------------------------
-        #random.shuffle(formatted) #One time randomization of the order the of the instances in the data, so that if the data was ordered by phenotype, this potential learning bias (based on instance ordering) is eliminated.
-        randomize( formatted, self.jrnd )
+        random.shuffle(formatted) #One time randomization of the order the of the instances in the data, so that if the data was ordered by phenotype, this potential learning bias (based on instance ordering) is eliminated.
         return formatted
 
     def splitFolds(self, kfold=10):
@@ -335,67 +332,14 @@ class DataManagement:
                         random.shuffle( self.formatted_train_data )
                         split_again = True
 
-    def splitFolds2(self, kfold=10):
-        """ divide data set into kfold sets. """
-        self.formatted_train_data = stratify( self.formatted_train_data, kfold )
-        data_size = len( self.formatted_train_data )
-        self.folds = [[] for _ in range(kfold)]
-        for fold_id in range(kfold):
-            fold_size = int( data_size/kfold )
-            if fold_id < data_size % kfold:
-                fold_size += 1
-                offset = fold_id
-            else:
-                offset = data_size % kfold
-            first = fold_id * (int(data_size / kfold)) + offset
-            self.folds[fold_id] = self.formatted_train_data[ first : (first + fold_size) ]
-
-    def selectTrainTestSets(self, fold_id):
+    def selectTrainTestSets(self, fold):
         """ select subset for testing and the rest for training. """
         self.formatted_train_data = []
         for i in range( len(self.folds) ):
-            if i != fold_id:
+            if i != fold:
                 self.formatted_train_data += self.folds[i]
-        randomize( self.formatted_train_data, self.jrnd )
-        self.formatted_test_data = self.folds[fold_id]
+        self.formatted_test_data = self.folds[fold]
         self.numb_train_instances = len(self.formatted_train_data)
         self.numb_test_instances = len(self.formatted_test_data)
         print("DataManagement: Number of Instances = " + str(self.numb_train_instances))
         print("DataManagement: Number of Instances = " + str(self.numb_test_instances))
-
-
-def stratify(all_data, kfold=10):
-    """ divide data set into kfold sets. """
-    # sort by class
-    index = 1
-    numb_instances = len(all_data)
-    while index < numb_instances:
-        instance1 = all_data[index - 1]
-        for j in range( index, numb_instances ):
-            instance2 = all_data[j]
-            if instance1[1] == instance2[1]:
-                #swap(index, j)
-                temp = all_data[index]
-                all_data[index] = all_data[j]
-                all_data[j] = temp
-                index += 1
-        index += 1
-    # rearrange classes to kfold trunks.
-    stratified_data = []
-    start = 0
-    while len(stratified_data) < numb_instances:
-        j = start
-        while j < numb_instances:
-            stratified_data.append( all_data[j] )
-            j += kfold
-        start += 1
-    return stratified_data
-
-
-def randomize( formatted_data, javarandom ):
-    """ shuffle data """
-    for i in range( len(formatted_data)-1, 0, -1 ):
-        temp = formatted_data[i]
-        j = javarandom.nextInt(i + 1)
-        formatted_data[i] = formatted_data[j]
-        formatted_data[j] = temp

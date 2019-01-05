@@ -155,22 +155,6 @@ class XCS:
         print("XCS Run Complete")
         print("Compacting...")
         self.population.finalise()
-        if cons.test_file != 'None' or cons.kfold_cv > 0: #If a testing file is available.
-            if cons.env.format_data.discrete_action:
-                train_eval = self.doPopEvaluation(True)
-                test_eval = self.doPopEvaluation(False)
-            else:
-                train_eval = self.doContPopEvaluation(True)
-                test_eval = self.doContPopEvaluation(False)
-            ret_eval += test_eval
-        else:  #Only a training file is available
-            if cons.env.format_data.discrete_action:
-                ret_eval = train_eval = self.doPopEvaluation(True)
-                test_eval = None
-            else:
-                ret_eval = train_eval = self.doContPopEvaluation(True)
-                test_eval = None
-            ret_eval += train_eval
         OutputFileManager().writePopStats(self.prefix_out_file+'_finalised', train_eval, test_eval, self.iteration, self.population, self.tracked_results)
         OutputFileManager().writePop(self.prefix_out_file+'_finalised', self.iteration, self.population)
         return ret_eval
@@ -320,7 +304,7 @@ class XCS:
         print("Standard Accuracy (Adjusted) = " + str(adjusted_accuracy))
         print("Balanced Accuracy (Adjusted) = " + str(adjusted_balanced_accuracy))
         #Balanced and Standard Accuracies will only be the same when there are equal instances representative of each phenotype AND there is 100% covering.
-        return [adjusted_accuracy, standard_accuracy, adjusted_balanced_accuracy, covered_instances]
+        return [adjusted_balanced_accuracy, covered_instances]
 
 
     def doContPopEvaluation(self, is_train):
