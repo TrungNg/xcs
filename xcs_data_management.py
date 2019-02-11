@@ -125,7 +125,7 @@ class DataManagement:
         #Store number of instances in training data
         print("DataManagement: Number of Attributes = " + str(self.numb_attributes))
         self.numb_train_instances = len(raw_train_data)
-        if cons.kfold_cv == 0:
+        if cons.kfold_cv == False:
             print("DataManagement: Number of Instances = " + str(self.numb_train_instances))
 
 
@@ -311,35 +311,9 @@ class DataManagement:
 
     def splitFolds(self, kfold=10):
         """ divide data set into kfold sets. """
-        data_size = len( self.formatted_train_data )
-        class_counts = [0] * len(self.action_list)
-        for instance in self.formatted_train_data:
-            class_counts[ self.action_list.index(instance[1]) ] += 1
-        fold_size = int( data_size/kfold )
-        split_again = True
-        while split_again:
-            split_again = False
-            self.folds = [[] for _ in range(kfold)]
-            start_point = 0
-            for i in range(kfold):
-                end_point = start_point + fold_size
-                if i < data_size%kfold:
-                    end_point += 1
-                self.folds[i] = self.formatted_train_data[start_point:end_point]
-                start_point = end_point
-                fold_class_counts = [0] * len(self.action_list)
-                for instance in self.folds[i]:
-                    fold_class_counts[ self.action_list.index(instance[1]) ] += 1
-                for j in range( len(self.action_list) ):
-                    if fold_class_counts[j] == class_counts[j]:
-                        random.shuffle( self.formatted_train_data )
-                        split_again = True
-
-    def splitFolds2(self, kfold=10):
-        """ divide data set into kfold sets. """
         self.formatted_train_data = stratify( self.formatted_train_data, kfold )
         data_size = len( self.formatted_train_data )
-        self.folds = [[] for _ in range(kfold)]
+        self.folds = [ [] for _ in range(kfold) ]
         for fold_id in range(kfold):
             fold_size = int( data_size/kfold )
             if fold_id < data_size % kfold:
@@ -347,13 +321,54 @@ class DataManagement:
                 offset = fold_id
             else:
                 offset = data_size % kfold
-            first = fold_id * (int(data_size / kfold)) + offset
-            self.folds[fold_id] = self.formatted_train_data[ first : (first + fold_size) ]
+            first = fold_id * ( int( data_size/kfold ) ) + offset
+            self.folds[fold_id] = self.formatted_train_data[ first : ( first+fold_size ) ]
+
+    def splitData(self):
+        """ divide data set into kfold sets. """
+        class_counts = [0] * len( self.action_list )
+        for instance in self.formatted_train_data:
+            class_counts[ self.action_list.index( instance[1] ) ] += 1
+        training_sizes_for_actions = [0] * len( self.action_list )
+        for i in range( len(self.action_list) ):
+            training_sizes_for_actions[i] = int( class_counts[i] * cons.training_portion + 0.5 )
+        numb_instances_for_actions = [0] * len(self.action_list)
+        train_data = []
+        test_data = []
+        for instance in self.formatted_train_data:
+            action_index = self.action_list.index( instance[1] )
+            if numb_instances_for_actions[action_index] < training_sizes_for_actions[action_index]:
+                train_data.append(instance)
+                numb_instances_for_actions[action_index] += 1
+            else:
+                test_data.append(instance)
+        return train_data, test_data
+
+    def splitData2(self):
+        """ divide data set into kfold sets. """
+        num_train_folds = cons.training_portion * cons.kfold
+        if num_train_folds != int( num_train_folds ):
+            train_data, test_data = self.splitData()
+        else:
+            self.splitFolds( cons.kfold )
+            train_data = []
+            test_data = []
+            for i in range( cons.kfold ):
+                if i < num_train_folds:
+                    train_data += self.folds[i]
+                else:
+                    test_data += self.folds[i]
+        self.formatted_train_data = train_data
+        self.formatted_test_data = test_data
+        self.numb_train_instances = len( self.formatted_train_data )
+        self.numb_test_instances = len( self.formatted_test_data )
+        print("DataManagement: Number of Training Instances = " + str( self.numb_train_instances ))
+        print("DataManagement: Number of Testing Instances = " + str( self.numb_test_instances ))
 
     def selectTrainTestSets(self, fold_id):
-        """ select subset for testing and the rest for training. """
+        """ select one fold for testing and the rest for training (k-fold cross validation. """
         self.formatted_train_data = []
-        for i in range( len(self.folds) ):
+        for i in range( cons.kfold ):
             if i != fold_id:
                 self.formatted_train_data += self.folds[i]
         randomize( self.formatted_train_data, self.jrnd )

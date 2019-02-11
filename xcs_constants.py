@@ -19,7 +19,7 @@ class Constants:
         self.online_data_generator = False if par[ 'onlineProblem' ].lower()=='false' else True     # Saved as Boolean
         self.train_file = par['trainFile']                                      # Saved as text
         self.test_file = par['testFile']                                        # Saved as text
-        self.kfold_cv = 0
+        self.kfold_cv = bool(int(par['crossValidation']))
         if self.online_data_generator:
             self.problem_name = par[ 'onlineProblem' ]
             sizes = par[ 'problemSizes' ].split( '.' )
@@ -28,8 +28,8 @@ class Constants:
                 self.problem_sizes[ i ] = int( sizes[ i ] )
             self.out_file = self.outfile_dir+'XCS_'+self.problem_name+'_'+str(self.problem_sizes)         #Saved as text
         else:
-            if par['kfold'].lower() != 'false':
-                self.kfold_cv = int( par['kfold'] )
+            self.training_portion = float(par['splitPercent'])
+            self.kfold = int( par['kfold'] )
             if self.test_file == 'None':
                 train_file_without_dir = self.train_file.split('/')[-1]
                 self.out_file = self.outfile_dir+'XCS_'+train_file_without_dir        # Saved as text

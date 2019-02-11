@@ -119,7 +119,7 @@ class XCS:
                 self.population.runPopAveEval()
                 self.population.runAttGeneralitySum(True)
                 cons.env.startEvaluationMode()  #Preserves learning position in training data
-                if cons.test_file != 'None' or cons.kfold_cv > 0: #If a testing file is available.
+                if cons.test_file != 'None' or not cons.online_data_generator: #If a testing file is available.
                     if cons.env.format_data.discrete_action:
                         train_eval = self.doPopEvaluation(True)
                         ret_eval = test_eval = self.doPopEvaluation(False)
@@ -155,7 +155,7 @@ class XCS:
         print("XCS Run Complete")
         print("Compacting...")
         self.population.finalise()
-        if cons.test_file != 'None' or cons.kfold_cv > 0: #If a testing file is available.
+        if cons.test_file != 'None' or not cons.online_data_generator: #If a testing file is available.
             if cons.env.format_data.discrete_action:
                 train_eval = self.doPopEvaluation(True)
                 test_eval = self.doPopEvaluation(False)

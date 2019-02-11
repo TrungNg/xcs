@@ -4,18 +4,20 @@
 ###### Major Run Parameters - Essential to be set correctly for a successful run of the algorithm
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 onlineProblem=false						# Define name of parameter as necessary for the online data generator (if offline data file is used, set to False) to work.
-problemSizes=6									# Define the sizes of the problem as the data generator (if used) to work.
+problemSizes=37									# Define the sizes of the problem as the data generator (if used) to work.
 ------------------------------------------------
-trainFile=Demo_Datasets/zoo.data				# Path/FileName of training dataset
+trainFile=Demo_Datasets/phishing.data			# Path/FileName of training dataset
+crossValidation=0								# 1 for cross validation, 0 if no use (either online stream data or one time split).
 kfold=10										# if not used, set to 0.
+splitPercent=0.7								# Percentage of data instances for training.
 testFile=None									# Path/FileName of testing dataset.  If no testing data available or desired, put 'None'.
 outFileDir=Local_Output/						# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
 ------------------------------------------------
 multiprocessing=0
-learningIterations=20000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
+learningIterations=50000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
 extraEstimationRun=0							# Run extra estimation of accuracy of current system, used when exploration->1.
-N=1000											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
-p_spec=0.5										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
+N=2000											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
+p_spec=0.33										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Logistical Run Parameters
@@ -53,7 +55,7 @@ exploration=0.5									# Probability to select action by exploration (only supp
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Algorithm Heuristic Options
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-doGASubsumption=1								# Try to subsume offspring by a subsumer chosen in action set.
+doGASubsumption=0								# Try to subsume offspring by a subsumer chosen in action set.
 doActionetSubsumption=0							# Activate Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
 selectionMethod=tournament						# Select GA parent selection strategy ('tournament' or 'roulette')
 differentParent=0								# Force different parents in tournament selection or not
