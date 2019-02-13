@@ -363,6 +363,7 @@ class DataManagement:
                 else:
                     test_data += self.folds[i]
         self.formatted_train_data = train_data
+        random.shuffle( self.formatted_train_data )
         self.formatted_test_data = test_data
         self.numb_train_instances = len( self.formatted_train_data )
         self.numb_test_instances = len( self.formatted_test_data )
