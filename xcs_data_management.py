@@ -309,6 +309,10 @@ class DataManagement:
         randomize( formatted, self.jrnd )
         return formatted
 
+    def shuffleTrainingData(self):
+        """ shuffling data. """
+        random.shuffle( self.formatted_train_data )
+
     def splitFolds(self, kfold=10):
         """ divide data set into kfold sets. """
         self.formatted_train_data = stratify( self.formatted_train_data, kfold )

@@ -32,6 +32,7 @@ class Offline_Environment:
             self.data_ref += 1
         else:  #Once learning has completed an epoch (i.e. a cycle of iterations though the entire training dataset) it starts back at the first instance in the data)
             self.data_ref = 0
+            self.format_data.shuffleTrainingData()
         return [self.train_inst_condition, self.train_inst_phenotype]
 
 
