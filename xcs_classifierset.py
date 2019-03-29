@@ -89,16 +89,15 @@ class ClassifierSet:
         cons.timer.startTimeMatching()
         if cons.multiprocessing:
             results = pool.map( self.parallelMatching, range( len( self.pop_set ) ) )
-            for i in results:
-                if i != None:
-                    self.match_set.append( i )                 # If match - add classifier to match set
-                    if self.pop_set[ i ].action not in matched_phenotype_list:
-                        matched_phenotype_list.append( self.pop_set[ i ].action )
+            for cl in results:
+                if cl != None:
+                    self.match_set.append( cl )                 # If match - add classifier to match set
+                    if cl.action not in matched_phenotype_list:
+                        matched_phenotype_list.append( cl.action )
         else:
-            for i in range( len( self.pop_set ) ):              # Go through the population
-                cl = self.pop_set[i]                            # One classifier at a time
+            for cl in self.pop_set:              # Go through the population
                 if cl.match( state ):                             # Check for match
-                    self.match_set.append( i )                  # If match - add classifier to match set
+                    self.match_set.append( cl )                  # If match - add classifier to match set
                     if cl.action not in matched_phenotype_list:
                         matched_phenotype_list.append( cl.action )
         cons.timer.stopTimeMatching()
@@ -109,15 +108,15 @@ class ClassifierSet:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
             for action in missing_actions:
                 new_cl = Classifier( iteration, state, action )
-                self.addClassifierToPopulation( new_cl )
-                self.match_set.append( len(self.pop_set)-1 )  # Add created classifier to match set
+                new_cl = self.addClassifierToPopulation( new_cl )
+                self.match_set.append( new_cl )  # Add created classifier to match set
                 matched_phenotype_list.append( new_cl.action )
             if len( matched_phenotype_list ) >= cons.theta_mna:
                 self.deletion()
                 matched_phenotype_list = []
-                for i in self.match_set:
-                    if self.pop_set[i].action not in matched_phenotype_list:
-                        matched_phenotype_list.append(self.pop_set[i].action)
+                for cl in self.match_set:
+                    if cl.action not in matched_phenotype_list:
+                        matched_phenotype_list.append(cl.action)
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
@@ -572,10 +571,10 @@ class ClassifierSet:
         #     print(("Epoch: "+str(int(iteration/tracking_frequency))+"\t Iteration: " + str(iteration) + "\t MacroPop: " + str(len(self.pop_set))+ "\t MicroPop: " + str(self.micro_size) + "\t AccEstimate: " + str(accuracy) + "\t AveGen: " + str(self.mean_generality) + "\t PhenRange: " +str(self.avg_action_range) + "\t Time: " + str(cons.timer.returnGlobalTimer())))
         return population_info
 
-    def parallelMatching( self, i ): #( ( indices, condition, state, id ) ):
+    def parallelMatching( self, cl ): #( ( indices, condition, state, id ) ):
         """ used when multiprocessing is enabled. """
-        if self.pop_set[ i ].match( self.current_instance ):
-            return i
+        if cl.match( self.current_instance ):
+            return cl
         return None
 
     def finalise(self, do_compact=False):
