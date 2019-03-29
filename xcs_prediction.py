@@ -29,8 +29,7 @@ class Prediction:
             denominator[ action ] = 0.0
             self.tiebreak_numerosity[ action ] = 0
 
-        for ref in population.match_set:
-            cl = population.pop_set[ref]
+        for cl in population.match_set:
             self.prediction[cl.action] += cl.prediction * cl.fitness
             denominator[cl.action] += cl.fitness
             self.tiebreak_numerosity[cl.action] += cl.numerosity
@@ -43,8 +42,7 @@ class Prediction:
     def getFitnessSum(self,population,low,high):
         """ Get the fitness sum of rules in the rule-set. For continuous phenotype prediction. """
         fitness_sum = 0
-        for ref in population.match_set:
-            cl = population.pop_set[ref]
+        for cl in population.match_set:
             if cl.action[0] <= low and cl.action[1] >= high: #if classifier range subsumes segment range.
                 fitness_sum += cl.fitness
         return fitness_sum

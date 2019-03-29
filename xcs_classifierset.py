@@ -88,7 +88,7 @@ class ClassifierSet:
         #-------------------------------------------------------
         cons.timer.startTimeMatching()
         if cons.multiprocessing:
-            results = pool.map( self.parallelMatching, range( len( self.pop_set ) ) )
+            results = pool.map( self.parallelMatching, self.pop_set )
             for cl in results:
                 if cl != None:
                     self.match_set.append( cl )                 # If match - add classifier to match set
@@ -120,16 +120,15 @@ class ClassifierSet:
 
     def makeActionSet(self, selected_action):
         """ Constructs a correct set out of the given match set. """
-        for ref in self.match_set:
-            if self.pop_set[ref].action == selected_action:
-                self.action_set.append(ref)
+        for mcl in self.match_set:
+            if mcl.action == selected_action:
+                self.action_set.append(mcl)
 
     def makeEvalMatchSet(self, state):
         """ Constructs a match set for evaluation purposes which does not activate either covering or deletion. """
-        for i in range(len(self.pop_set)):       # Go through the population
-            cl = self.pop_set[i]                 # A single classifier
+        for cl in self.pop_set:       # Go through the population
             if cl.match(state):                 # Check for match
-                self.match_set.append(i)         # Add classifier to match set
+                self.match_set.append(cl)         # Add classifier to match set
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -166,10 +165,9 @@ class ClassifierSet:
                 cl.updateNumerosity(-1)
                 self.micro_size -= 1
                 if cl.numerosity < 1: # When all micro-classifiers for a given classifier have been depleted.
-                    self.removeMacroClassifier(i)
+                    self.pop_set.pop(i)
                     if self.match_set != []:
-                        self.deleteFromMatchSet(i)
-                        self.deleteFromActionSet(i)
+                        self.deleteFromSets(cl)
                 return
         print("ClassifierSet: No eligible rules found for deletion in deleteFromPopulation.")
         return
@@ -178,26 +176,31 @@ class ClassifierSet:
         """ Removes the specified (macro-) classifier from the population. """
         self.pop_set.pop(ref)
 
-    def deleteFromMatchSet(self, cl_ref):
+    def deleteFromSets(self, cl):
+        """ delete cl from action set and match set. """
+        try:
+            self.match_set.remove(cl)
+        except ValueError:
+            pass
+        else:
+            try:
+                self.action_set.remove(cl)
+            except ValueError:
+                pass
+
+    def deleteFromMatchSet(self, cl):
         """ Delete reference to classifier in population, contained in self.match_set."""
-        if cl_ref in self.match_set:
-            self.match_set.remove(cl_ref)
-        #Update match set reference list--------
-        for j in range(len(self.match_set)):
-            ref = self.match_set[j]
-            if ref > cl_ref:
-                self.match_set[j] -= 1
+        try:
+            self.match_set.remove(cl)
+        except ValueError:
+            return
 
-    def deleteFromActionSet(self, cl_ref):
+    def deleteFromActionSet(self, cl):
         """ Delete reference to classifier in population, contained in self.action_set."""
-        if cl_ref in self.action_set:
-            self.action_set.remove(cl_ref)
-
-        #Update action set reference list--------
-        for j in range(len(self.action_set)):
-            ref = self.action_set[j]
-            if ref > cl_ref:
-                self.action_set[j] -= 1
+        try:
+            self.action_set.remove(cl)
+        except ValueError:
+            return
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -228,10 +231,8 @@ class ClassifierSet:
             clP1 = selected_list[0]
             clP2 = selected_list[1]
         else:
-            clP1_index = self.selectClassifierUsingIqbalTournamentSel()
-            clP2_index = self.selectClassifierUsingIqbalTournamentSel()
-            clP1 = self.pop_set[ clP1_index ]
-            clP2 = self.pop_set[ clP2_index ]
+            clP1 = random.choice( self.action_set )
+            clP2 = random.choice( self.action_set )
             #print("ClassifierSet: Error - requested GA selection method not available.")
         cons.timer.stopTimeSelection()
         # clP1.updateGACount()
@@ -290,12 +291,12 @@ class ClassifierSet:
 
             choice_point = random.random() * fit_sum
             i=0
-            sum_cl = self.pop_set[set_list[i]].fitness
+            sum_cl = set_list[i].fitness
             while choice_point > sum_cl:
                 i=i+1
-                sum_cl += self.pop_set[set_list[i]].fitness
+                sum_cl += set_list[i].fitness
 
-            selected_list[count] = self.pop_set[set_list[i]]
+            selected_list[count] = set_list[i]
             if cons.distinct_parents and len(set_list) > 1:
                 set_list.pop(i)
             count += 1
@@ -315,11 +316,11 @@ class ClassifierSet:
             post_list = random.sample(set_list,tournament_size)
             highest_fitness = 0
             best_cl = post_list[0]
-            for j in post_list:
-                if self.pop_set[j].fitness > highest_fitness:
-                    highest_fitness = self.pop_set[j].fitness
-                    best_cl = j
-            selected_list[count] = self.pop_set[ best_cl ]
+            for cl in post_list:
+                if cl.fitness > highest_fitness:
+                    highest_fitness = cl.fitness
+                    best_cl = cl
+            selected_list[count] = cl
             count += 1
             if cons.distinct_parents and len( set_list ) > 1:
                 set_list.remove( best_cl )
@@ -403,8 +404,7 @@ class ClassifierSet:
         """ Executes match set subsumption.  The match set subsumption looks for the most general subsumer classifier in the match set
         and subsumes all classifiers that are more specific than the selected one. """
         subsumer = None
-        for ref in self.action_set:
-            cl = self.pop_set[ref]
+        for cl in self.action_set:
             if cl.isPossibleSubsumer():
                 if subsumer == None or len( subsumer.specified_attributes ) > len( cl.specified_attributes ) or ( ( len(subsumer.specified_attributes ) == len(cl.specified_attributes) and random.random() < 0.5 ) ):
                     subsumer = cl
@@ -412,12 +412,11 @@ class ClassifierSet:
         if subsumer != None: #If a subsumer was found, subsume all more specific classifiers in the match set
             i=0
             while i < len(self.action_set):
-                ref = self.action_set[i]
-                if subsumer.isMoreGeneral(self.pop_set[ref]):
-                    subsumer.updateNumerosity(self.pop_set[ref].numerosity)
-                    self.removeMacroClassifier(ref)
-                    self.deleteFromMatchSet(ref)
-                    self.deleteFromActionSet(ref)
+                cl = self.action_set[i]
+                if subsumer.isMoreGeneral(cl):
+                    subsumer.updateNumerosity(cl.numerosity)
+                    self.pop_set.remove(cl)
+                    self.deleteFromSets(cl)
                     i = i - 1
                 i = i + 1
 
@@ -430,11 +429,13 @@ class ClassifierSet:
         old_cl = None
         if not covering:
             old_cl = self.getIdenticalClassifier(cl)
+        self.micro_size += num_copy
         if old_cl != None: #found identical classifier
             old_cl.updateNumerosity(num_copy)
+            return old_cl
         else:
             self.pop_set.append(cl)
-        self.micro_size += num_copy
+            return cl
 
     def insertDiscoveredClassifiers(self, cl1, cl2, clP1, clP2):
         """ Inserts both discovered classifiers and activates GA subsumption if turned on. Also checks for default rule (i.e. rule with completely general condition) and
@@ -469,16 +470,16 @@ class ClassifierSet:
     def updateSets(self, reward):
         """ Updates all relevant parameters in the current match and match sets. """
         action_set_numer = 0
-        for ref in self.action_set:
-            action_set_numer += self.pop_set[ref].numerosity
+        for cl in self.action_set:
+            action_set_numer += cl.numerosity
         accuracy_sum = 0.0
-        for ref in self.action_set:
-            self.pop_set[ref].updateActionExp()
-            self.pop_set[ref].updateActionSetSize( action_set_numer )
-            self.pop_set[ref].updateXCSParameters( reward )
-            accuracy_sum += self.pop_set[ref].accuracy * self.pop_set[ref].numerosity
-        for ref in self.action_set:
-            self.pop_set[ref].updateFitness( self.pop_set[ref].accuracy * self.pop_set[ref].numerosity / accuracy_sum )
+        for cl in self.action_set:
+            cl.updateActionExp()
+            cl.updateActionSetSize( action_set_numer )
+            cl.updateXCSParameters( reward )
+            accuracy_sum += cl.accuracy * cl.numerosity
+        for cl in self.action_set:
+            cl.updateFitness( cl.accuracy * cl.numerosity / accuracy_sum )
 
 
     #--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -488,16 +489,16 @@ class ClassifierSet:
         """ Returns the average of the time stamps in the match set. """
         sum_cl = 0.0
         sum_numer = 0.0
-        for ref in self.action_set:
-            sum_cl += self.pop_set[ref].ga_timestamp * self.pop_set[ref].numerosity
-            sum_numer += self.pop_set[ref].numerosity #numerosity sum of match set
+        for cl in self.action_set:
+            sum_cl += cl.ga_timestamp * cl.numerosity
+            sum_numer += cl.numerosity #numerosity sum of match set
         return sum_cl/float( sum_numer )
 
     def setIterStamps(self, iteration):
         """ Sets the time stamp of all classifiers in the set to the current time. The current time
         is the number of exploration steps executed so far.  """
-        for ref in self.action_set:
-            self.pop_set[ref].updateTimeStamp(iteration)
+        for cl in self.action_set:
+            cl.updateTimeStamp(iteration)
 
     #def setPredictionArray(self,newPredictionArray):
     #    predictionArray = newPredictionArray
@@ -505,8 +506,8 @@ class ClassifierSet:
     def getFitnessSum(self, cl_set):
         """ Returns the sum of the fitnesses of all classifiers in the set. """
         sum_cl = 0.0
-        for ref in cl_set:
-            sum_cl += self.pop_set[ref].fitness
+        for cl in cl_set:
+            sum_cl += cl.fitness
         return sum_cl
 
     def getPopFitnessSum(self):
@@ -518,9 +519,9 @@ class ClassifierSet:
 
     def getIdenticalClassifier(self, new_cl):
         """ Looks for an identical classifier in the population. """
-        for ref in self.match_set:
-            if new_cl.equals(self.pop_set[ref]):
-                return self.pop_set[ref]
+        for mcl in self.match_set:
+            if new_cl.equals(mcl):
+                return mcl
         return None
 
     def clearSets(self):
