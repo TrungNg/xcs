@@ -55,7 +55,7 @@ exploration=0.5									# Probability to select action by exploration (only supp
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Algorithm Heuristic Options
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-doGASubsumption=0								# Try to subsume offspring by a subsumer chosen in action set.
+doGASubsumption=1								# Try to subsume offspring by a subsumer chosen in action set.
 doActionetSubsumption=0							# Activate Subsumption? (1 is True, 0 is False).  Subsumption is a heuristic that actively seeks to increase generalization in the rule population.
 selectionMethod=tournament						# Select GA parent selection strategy ('tournament' or 'roulette')
 differentParent=0								# Force different parents in tournament selection or not

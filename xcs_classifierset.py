@@ -108,7 +108,7 @@ class ClassifierSet:
             missing_actions = [a for a in cons.env.format_data.action_list if a not in matched_phenotype_list]
             for action in missing_actions:
                 new_cl = Classifier( iteration, state, action )
-                new_cl = self.addClassifierToPopulation( new_cl )
+                self.addClassifierToPopulation( new_cl )
                 self.match_set.append( new_cl )  # Add created classifier to match set
                 matched_phenotype_list.append( new_cl.action )
             if len( matched_phenotype_list ) >= cons.theta_mna:
@@ -320,7 +320,7 @@ class ClassifierSet:
                 if cl.fitness > highest_fitness:
                     highest_fitness = cl.fitness
                     best_cl = cl
-            selected_list[count] = cl
+            selected_list[count] = best_cl
             count += 1
             if cons.distinct_parents and len( set_list ) > 1:
                 set_list.remove( best_cl )
@@ -388,13 +388,13 @@ class ClassifierSet:
         """ Tries to subsume a classifier in the match set. If no subsumption is possible the classifier is simply added to the population considering
         the possibility that there exists an identical classifier. """
         choices = []
-        for ref in self.match_set:
-            if self.pop_set[ref].subsumes(cl):
-                choices.append(ref)
+        for mcl in self.match_set:
+            if mcl.subsumes(cl):
+                choices.append(mcl)
 
         if len(choices) > 0: #Randomly pick one classifier to be subsumer
             choicep = int( random.random()*len(choices) )
-            self.pop_set[ choices[choicep] ].updateNumerosity(num_copy)
+            choices[choicep].updateNumerosity(num_copy)
             self.micro_size += num_copy
             return
 
