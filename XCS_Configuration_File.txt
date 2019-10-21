@@ -14,10 +14,10 @@ testFile=None									# Path/FileName of testing dataset.  If no testing data av
 outFileDir=Local_Output/						# Path/NewName for new algorithm output files. Note: Do not give a file extension, this is done automatically.
 ------------------------------------------------
 multiprocessing=0
-learningIterations=1000000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
+learningIterations=2000000						# Specify complete algorithm evaluation checkpoints and maximum number of learning iterations (e.g. 1000.2000.5000 = A maximum of 5000 learning iterations with evaluations at 1000, 2000, and 5000 iterations)
 extraEstimationRun=0							# Run extra estimation of accuracy of current system, used when exploration->1.
 N=5000											# Maximum size of the rule population (a.k.a. Micro-classifier population size, where N is the sum of the classifier numerosities in the population)
-p_spec=0.33										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
+p_spec=0.67										# The probability of specifying an attribute when covering. (1-p_spec = the probability of adding '#' in ternary rule representations). Greater numbers of attributes in a dataset will require lower values of p_spec.
 
 ######--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ###### Logistical Run Parameters

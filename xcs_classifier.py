@@ -245,23 +245,43 @@ class Classifier:
         #-------------------------------------------------------
         # MUTATE CONDITION
         #-------------------------------------------------------
-        for att in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
-            if random.random() < cons.mu and state[att] != cons.missing_label:
-                #MUTATION--------------------------------------------------------------------------------------------------------------
-                if att not in self.specified_attributes: #Attribute not yet specified
-                    self.specified_attributes.append(att)
-                    self.condition.append( state[att] ) #buildMatch handles both discrete and continuous attributes
-                    changed = True
-                elif att in self.specified_attributes: #Attribute already specified
-                    i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
-                    self.specified_attributes.remove(att)
-                    self.condition.pop(i) #buildMatch handles both discrete and continuous attributes
-                    changed = True
-                #-------------------------------------------------------
-                # NO MUTATION OCCURS
-                #-------------------------------------------------------
+        for _ in range(cons.env.format_data.numb_attributes):
+            if random.random() < cons.mu:
+                if random.random() < 0.5:
+                    if len( self.specified_attributes ) > 0:
+                        ## generalising mutation
+                        att = random.choice( self.specified_attributes )
+                        if state[att] != cons.missing_label:
+                            i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
+                            self.specified_attributes.remove(att)
+                            self.condition.pop(i) #buildMatch handles both discrete and continuous attributes
+                            changed = True
                 else:
-                    pass
+                    ## specifying mutation
+                    dontcare_attributes = list( set(range(len(state))) - set(self.specified_attributes) )
+                    if len( dontcare_attributes ) > 0:
+                        att = random.choice( dontcare_attributes )
+                        if state[att] != cons.missing_label:
+                            self.specified_attributes.append(att)
+                            self.condition.append( state[att] ) #buildMatch handles both discrete and continuous attributes
+                            changed = True
+        # for att in range(cons.env.format_data.numb_attributes):  #Each condition specifies different attributes, so we need to go through all attributes in the dataset.
+        #     if random.random() < cons.mu and state[att] != cons.missing_label:
+        #         #MUTATION--------------------------------------------------------------------------------------------------------------
+        #         if att not in self.specified_attributes: #Attribute not yet specified
+        #             self.specified_attributes.append(att)
+        #             self.condition.append( state[att] ) #buildMatch handles both discrete and continuous attributes
+        #             changed = True
+        #         elif att in self.specified_attributes: #Attribute already specified
+        #             i = self.specified_attributes.index(att) #reference to the position of the attribute in the rule representation
+        #             self.specified_attributes.remove(att)
+        #             self.condition.pop(i) #buildMatch handles both discrete and continuous attributes
+        #             changed = True
+        #         #-------------------------------------------------------
+        #         # NO MUTATION OCCURS
+        #         #-------------------------------------------------------
+        #         else:
+        #             pass
         #-------------------------------------------------------
         # MUTATE PHENOTYPE
         #-------------------------------------------------------
